@@ -95,6 +95,31 @@ class AuthModel {
 
         return this.obtenerUsuarioPorId(id);
     }
+
+    async revocarRefreshToken(userId) {
+        await pool.execute(
+            `UPDATE refresh_tokens SET revoked = TRUE 
+            WHERE user_id = ? AND revoked = FALSE`,
+            [userId]
+        );
+    }
+
+    async guardarRefreshToken(userId, refreshToken) {
+        this.revocarRefreshToken(userId)
+
+        const hashedToeken = await bcrypt.hash(refreshToken, 10);
+        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);//*7 Días de expiración
+
+        const [resultado] = await pool.execute(
+            `INSERT INTO refresh_tokens 
+            (user_id, token_hash, expires_at) 
+            VALUES (?, ?, ?)`,
+            [userId, hashedToeken, expiresAt]
+        )
+        return resultado
+    }
+
+
 }
 
 module.exports = new AuthModel();

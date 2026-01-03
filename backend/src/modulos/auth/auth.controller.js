@@ -40,6 +40,7 @@ class AuthController {
     // Login de usuario-
     async login(req, res) {
         try {
+
             const { usuario, password } = req.body;
 
             if (!usuario || !password) {
@@ -49,16 +50,18 @@ class AuthController {
                 });
             }
 
-            const resultado = await authServicio.login({ usuario, password });
+            const { token, resultado, refreshToken } = await authServicio.login({ usuario, password });
 
             res.status(200).json({
                 success: true,
                 message: 'Login exitoso',
-                data: resultado
+                token,
+                usuario: resultado,
+                refreshToken
             });
 
         } catch (error) {
-            res.status(401).json({
+            res.status(404).json({
                 success: false,
                 message: error.message
             });

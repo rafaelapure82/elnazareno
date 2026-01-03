@@ -2,7 +2,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
 const authModel = require('./auth.model');
-const { jwtSecret, jwtExpiresIn } = require('../../config/jwt');
+const { jwtSecret, jwtAccessSecret, jwrRefreshSecret, jwtAccessExpiresIn, jwtRefreshExpiresIn } = require('../../config/jwt');
 
 class AuthServicio {
 
@@ -45,25 +45,22 @@ class AuthServicio {
         await authModel.actualizarUltimoLogin(username.id);
 
         // Generar token JWT
-        const token = jwt.sign(
-            {
-                id: username.id,
-                username: username.usuario,
-                rol: username.rol
-            },
-            jwtSecret,
-            { expiresIn: jwtExpiresIn }
-        );
+
+        const token = this.generarAccessToken(username);
+        const refreshToken = this.generarRefreshToken(username);
+
+        await authModel.guardarRefreshToken(username.id, refreshToken);
 
         // Retornar datos del usuario y token
         return {
-            usuario: {
+            resultado: {
                 id: username.id,
                 usuario: username.usuario,
                 email: username.correo,
                 rol: username.rol
             },
-            token
+            token,
+            refreshToken
         };
     }
 
@@ -114,6 +111,26 @@ class AuthServicio {
         } catch (error) {
             throw new Error('Token inválido');
         }
+    }
+
+    generarAccessToken(username) {
+        return jwt.sign(
+            {
+                id: username.id,
+                username: username.usuario,
+                rol: username.rol
+            },
+            jwtAccessSecret,
+            { expiresIn: jwtAccessExpiresIn }
+        );
+    }
+
+    generarRefreshToken(username) {
+        return jwt.sign(
+            { userId: username.id },
+            jwrRefreshSecret,
+            { expiresIn: jwtRefreshExpiresIn }
+        );
     }
 }
 

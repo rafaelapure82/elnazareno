@@ -24,9 +24,9 @@ app.use(express.json({ limit: '10mb' })); // Aumentado para soportar archivos
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 //*Ruta Principal
-app.get("/", (req, res) => {
+app.get("/api", (req, res) => {
     console.log("Corriento")
-    res.send("Hola mundo")
+    res.send("Hola mundo desde el backend")
 })
 
 //! Rutas
@@ -42,7 +42,7 @@ app.use("/api/secciones", require("./modulos/secciones/secciones.routes"))
 //* Inicio del Servidor
 app.listen(puerto, () => {
     console.log(`Servidor ejecutándose en el puerto: ${puerto}`);
-    console.log(`Entorno: ${process.env.NODE_ENV || 'Desarrollo'}`);
+    console.log(`Entorno: ${process.env.NODE_ENV}`);
 })
 
 //*Middleware para las rutas no existentes
