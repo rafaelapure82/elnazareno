@@ -42,6 +42,7 @@ export const AuthProvider = ({ children }) => {
                         isAuthenticated: false,
                         isLoading: false
                     });
+
                 }
             } else {
                 setAuthState(prev => ({ ...prev, isLoading: false }));
@@ -52,11 +53,12 @@ export const AuthProvider = ({ children }) => {
     }, []);
 
     // Función de login
-    const login = useCallback(async (user, token, rememberMe = false) => {
+    const login = useCallback(async (user, token, refreshToken, rememberMe = false) => {
         // Guardar en storage
         if (rememberMe) {
             localStorage.setItem('token', token);
             localStorage.setItem('user', JSON.stringify(user));
+            localStorage.setItem('refreshToken', refreshToken);
         } else {
             sessionStorage.setItem('token', token);
             sessionStorage.setItem('user', JSON.stringify(user));
@@ -77,22 +79,26 @@ export const AuthProvider = ({ children }) => {
     }, []);
 
     // Función de logout
-    const logout = useCallback(async () => {
+    const logout = useCallback(async (navigate) => {
+        const refreshToken = localStorage.getItem('refreshToken') || sessionStorage.getItem('refreshToken');
+
         try {
-            await AuthServicio.logout();
+            await AuthServicio.logout({ refreshToken: refreshToken });
         } catch (error) {
             console.warn('Error en logout del servidor:', error);
         } finally {
             // Limpiar siempre
             AuthAdaptador.clearStorage();
             delete axiosInstance.defaults.headers.common['Authorization'];
-
             setAuthState({
                 user: null,
                 token: null,
                 isAuthenticated: false,
                 isLoading: false
             });
+            if (navigate) {
+                navigate('/', { replace: true });
+            }
         }
     }, []);
 

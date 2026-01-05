@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 
 const authModel = require('./auth.model');
 const { jwtSecret, jwtAccessSecret, jwrRefreshSecret, jwtAccessExpiresIn, jwtRefreshExpiresIn } = require('../../config/jwt');
+const e = require('express');
 
 class AuthServicio {
 
@@ -75,6 +76,74 @@ class AuthServicio {
         delete usuario.password_hash;
         return usuario;
     }
+    //Refrescar AccessToken
+    async refreshToken(refreshToken) {
+
+        try {
+            const tokenDecodificado = this.decodificarRefreshToken(refreshToken);
+            const tokenBD = await authModel.buscarRefreshTokenPorId(tokenDecodificado.userId)
+            if (!tokenBD) {
+                const error = new Error('Token no encontrado');
+                error.status = 404;
+                error.code = 'TOKEN_NOT_FOUND';
+                throw error
+            }
+
+            const esValido = await bcrypt.compare(refreshToken, tokenBD.token_hash);
+
+            if (!esValido) {
+                const error = new Error('Token inválido');
+                error.status = 401;
+                error.code = 'INVALID_TOKEN';
+                throw error
+            }
+
+            this.verificarTokenRefresh(refreshToken);
+
+            const usuario = await authModel.obtenerUsuarioPorId(tokenDecodificado.userId);
+
+            if (!usuario) {
+                await authModel.revocarRefreshToken(tokenDecodificado.userId);
+                const error = new Error('Usuario no encontrado');
+                error.status = 404;
+                error.code = 'USER_NOT_FOUND';
+                return error
+            }
+
+            const token = this.generarAccessToken(usuario)
+            return token;
+
+        } catch (error) {
+            return error;
+        }
+    }
+
+    async cerrarSesion(refreshToken) {
+        try {
+            const tokenDecodificado = this.decodificarRefreshToken(refreshToken);
+            const tokenBD = await authModel.buscarRefreshTokenPorId(tokenDecodificado.userId)
+            if (!tokenBD) {
+                const error = new Error('Token no encontrado');
+                error.status = 404;
+                error.code = 'TOKEN_NOT_FOUND';
+                throw error
+            }
+
+            const esValido = await bcrypt.compare(refreshToken, tokenBD.token_hash);
+
+            if (!esValido) {
+                const error = new Error('Token inválido');
+                error.status = 401;
+                error.code = 'INVALID_TOKEN';
+                throw error
+            }
+
+            await authModel.revocarRefreshToken(tokenDecodificado.userId);
+            await authModel.eliminarRefreshToken(tokenDecodificado.userId);
+        } catch (error) {
+            throw error;
+        }
+    }
 
     // Validaciones de registro-
     validarDatosRegistro(datos) {
@@ -113,6 +182,19 @@ class AuthServicio {
         }
     }
 
+    verificarTokenRefresh(token) {
+        try {
+            return jwt.verify(token, jwrRefreshSecret);
+        } catch (error) {
+            error.code = error.name === 'TokenExpiredError' ? 'TOKEN_EXPIRED' :
+                error.name === 'JsonWebTokenError' ? 'INVALID_TOKEN' :
+                    'VERIFICATION_ERROR';
+
+            error.status = 401;
+            throw error; // ← Relanzar el error modificado
+        }
+    }
+
     generarAccessToken(username) {
         return jwt.sign(
             {
@@ -131,6 +213,26 @@ class AuthServicio {
             jwrRefreshSecret,
             { expiresIn: jwtRefreshExpiresIn }
         );
+    }
+
+    decodificarRefreshToken(refreshToken) {
+        let tokenDecodificado;
+
+        try {
+            tokenDecodificado = jwt.decode(refreshToken);
+        } catch (error) {
+            throw new Error(`Error decodificando token: ${error.message}`);
+        }
+
+        if (!tokenDecodificado) {
+            throw new Error('Token JWT inválido o malformado');
+        }
+
+        if (!tokenDecodificado.userId) {
+            throw new Error('Token JWT no contiene userId');
+        }
+
+        return tokenDecodificado;
     }
 }
 

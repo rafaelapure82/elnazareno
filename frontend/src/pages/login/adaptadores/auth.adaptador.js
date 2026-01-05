@@ -23,7 +23,9 @@ export class AuthAdaptador {
 
     static clearStorage() {
         localStorage.removeItem('token');
+        //localStorage.removeItem('userUsuario');
         localStorage.removeItem('user');
+        localStorage.removeItem('refreshToken');
         sessionStorage.removeItem('token');
         sessionStorage.removeItem('user');
         localStorage.removeItem('userEmail');

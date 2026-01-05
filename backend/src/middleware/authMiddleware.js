@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const jwtSecret = process.env.JWT_SECRET;
+const jwtSecret = process.env.ACCESS_TOKEN_SECRET;
 
 const authMiddleware = (req, res, next) => {
     try {
@@ -19,7 +19,7 @@ const authMiddleware = (req, res, next) => {
         const decoded = jwt.verify(token, jwtSecret);
 
         // Agregar datos del usuario al request
-        req.user = {
+        req.usuario = {
             id: decoded.id,
             username: decoded.username,
             rol: decoded.rol
@@ -30,7 +30,7 @@ const authMiddleware = (req, res, next) => {
         console.error('Error de autenticación:', error.message);
 
         if (error.name === 'JsonWebTokenError') {
-            return res.status(401).json({
+            return res.status(403).json({
                 success: false,
                 message: 'Token inválido'
             });
@@ -39,13 +39,14 @@ const authMiddleware = (req, res, next) => {
         if (error.name === 'TokenExpiredError') {
             return res.status(401).json({
                 success: false,
-                message: 'Token expirado'
+                message: 'Token expirado',
+                expired: true
             });
         }
 
-        return res.status(401).json({
+        return res.status(500).json({
             success: false,
-            message: 'Error de autenticación'
+            message: 'Error de autenticación o verificar el token'
         });
     }
 };

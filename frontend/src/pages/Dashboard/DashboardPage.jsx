@@ -1,5 +1,14 @@
 // src/pages/Dashboard/DashboardPage.jsx
+import { useAuth } from "../../contextos/AuthContexto";
+import { useNavigate } from 'react-router-dom';
 const DashboardPage = () => {
+    const navigate = useNavigate();
+    const { logout } = useAuth();
+
+    const handleLogout = () => {
+        logout(navigate);
+    };
+
     return (
         <div className="min-h-screen bg-gray-100 p-8">
             <div className="max-w-7xl mx-auto">
@@ -10,7 +19,8 @@ const DashboardPage = () => {
                     </p>
                     <div className="mt-6">
                         <button
-                            onClick={() => window.location.href = '/login'}
+                            // onClick={() => window.location.href = '/login'}
+                            onClick={handleLogout}
                             className="bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700"
                         >
                             Cerrar Sesión (simulado)

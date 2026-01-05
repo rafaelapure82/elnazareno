@@ -14,12 +14,12 @@ export class LoginAdaptador {
             token: apiResponse.token,
             refreshToken: apiResponse.refreshToken,
             user: {
-                id: apiResponse.user.id,
-                email: apiResponse.user.email,
-                name: apiResponse.user.name || apiResponse.user.email.split('@')[0],
-                roles: apiResponse.user.roles || ['user'],
-                avatar: apiResponse.user.avatar,
-                permissions: apiResponse.user.permissions || []
+                id: apiResponse.usuario.id,
+                email: apiResponse.usuario.email,
+                name: apiResponse.usuario.name || apiResponse.usuario.email.split('@')[0],
+                roles: apiResponse.usuario.rol || ['usuario'],
+                avatar: apiResponse.usuario.avatar,
+                permissions: apiResponse.usuario.permissions || []
             },
             expiresIn: apiResponse.expiresIn || 3600
         };

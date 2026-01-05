@@ -1,7 +1,5 @@
-// src/modules/login/hooks/useLogin.js
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-
 import { useAuth } from '../../../contextos/AuthContexto';
 
 import { AuthServicio } from '../servicios/auth.servicio';
@@ -73,18 +71,20 @@ export const useLogin = () => {
 
         try {
             // 1. Adaptar datos al formato del backend
-            const credentials = LoginAdaptador.toRequest(formData);
+            const credenciales = LoginAdaptador.toRequest(formData);
 
             // 2. Llamar al servicio de autenticación
-            const response = await AuthServicio.login(credentials);
+            const respuesta = await AuthServicio.login(credenciales);
 
             // 3. Adaptar respuesta del backend
-            const authData = LoginAdaptador.fromResponse(response);
+            const authData = LoginAdaptador.fromResponse(respuesta);
 
+            console.log(authData.refreshToken)
             // 4. Guardar en contexto global
             await contextLogin(
                 authData.user,
                 authData.token,
+                authData.refreshToken,
                 formData.rememberMe
             );
 
@@ -96,7 +96,7 @@ export const useLogin = () => {
             }
 
             // 6. Redirigir al dashboard
-            // navigate('/dashboard', { replace: true });
+            navigate('/dashboard', { replace: true });
 
         } catch (error) {
             // Manejo de errores específicos de la API

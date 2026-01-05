@@ -97,11 +97,13 @@ class AuthModel {
     }
 
     async revocarRefreshToken(userId) {
-        await pool.execute(
+        const [resultado] = await pool.execute(
             `UPDATE refresh_tokens SET revoked = TRUE 
             WHERE user_id = ? AND revoked = FALSE`,
             [userId]
         );
+
+        return resultado.affectedRows > 0;
     }
 
     async guardarRefreshToken(userId, refreshToken) {
@@ -119,7 +121,23 @@ class AuthModel {
         return resultado
     }
 
+    async buscarRefreshTokenPorId(userId) {
+        const [tokes] = await pool.execute(
+            `SELECT token_hash FROM refresh_tokens
+            WHERE user_id = ? AND revoked = FALSE AND expires_at > NOW()`,
+            [userId]
+        )
+        return tokes[0]
+    }
 
+    async eliminarRefreshToken(userId) {
+        const [resultado] = await pool.execute(
+            `DELETE FROM refresh_tokens
+            WHERE user_id = ?`,
+            [userId]
+        )
+        return resultado
+    }
 }
 
 module.exports = new AuthModel();

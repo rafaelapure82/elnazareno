@@ -1,4 +1,3 @@
-// src/modules/login/services/auth.service.js
 import { ApiServicio } from './api.servicio';
 
 export class AuthServicio {
@@ -15,10 +14,11 @@ export class AuthServicio {
         return await ApiServicio.post('/auth/login', credentials);
     }
 
-    static async logout() {
+    static async logout(refreshToken) {
         // Endpoint: POST /auth/logout
+
         try {
-            return await ApiServicio.post('/auth/logout');
+            return await ApiServicio.post('/auth/cerrar-sesion', refreshToken);
         } catch (error) {
             // Si falla el logout del servidor, continuamos con logout local
             console.warn('Logout del servidor falló:', error);
@@ -31,14 +31,14 @@ export class AuthServicio {
         // Headers: Authorization: Bearer {token}
         // Respuesta: { valid: boolean, user?: object }
         console.log(token)
-        return await ApiServicio.get('/auth/validate');
+        return await ApiServicio.get('/auth/validarToken');
     }
 
     static async refreshToken(refreshToken) {
         // Endpoint: POST /auth/refresh
         // Body: { refreshToken: string }
         // Respuesta: { token: string, refreshToken: string }
-        return await ApiServicio.post('/auth/refresh', { refreshToken });
+        return await ApiServicio.post('/auth/refreshToken', { refreshToken });
     }
 
     static async forgotPassword(email) {

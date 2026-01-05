@@ -102,6 +102,70 @@ class AuthController {
             });
         }
     }
+
+    //Refrescar AccessToken
+    async refreshToken(req, res) {
+        const { refreshToken } = req.body;
+
+        try {
+
+            if (!refreshToken) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Refresh token es requerido'
+                });
+            }
+
+            const token = await authServicio.refreshToken(refreshToken);
+            res.status(200).json({
+                success: true,
+                token,
+                tokenType: "Bearer"
+            });
+        } catch (error) {
+            const statusCode = error.statusCode || 500;
+            const message = error.message || 'Error interno';
+
+            res.status(statusCode).json({
+                success: false,
+                message: message,
+                code: error.code || 'ERROR_DESCONOCIDO'
+            });
+
+        }
+    }
+
+    //Cerrar sesion
+    async cerrarSesion(req, res) {
+        try {
+            const { refreshToken } = req.body;
+            if (!refreshToken) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Refresh token es requerido'
+                });
+            }
+
+            await authServicio.cerrarSesion(refreshToken);
+
+            res.status(200).json({
+                success: true,
+                message: 'Sesión cerrada exitosamente'
+            });
+        } catch (error) {
+
+            const statusCode = error.status || 500;
+            const message = error.message || 'Error interno';
+
+            res.status(statusCode).json({
+                success: false,
+                message: message,
+                code: error.code || 'ERROR_DESCONOCIDO'
+            });
+
+
+        }
+    }
 }
 
 module.exports = new AuthController();
