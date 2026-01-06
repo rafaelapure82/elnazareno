@@ -2,6 +2,7 @@ import React, { createContext, useState, useContext, useEffect, useCallback } fr
 import { AuthServicio } from '../pages/login/servicios/auth.servicio';
 import { AuthAdaptador } from '../pages/login/adaptadores/auth.adaptador';
 import axiosInstance from '../compartidos/api/axios.config';
+import { setRefreshTokenCallback } from '../compartidos/api/axios.config.js'
 
 const AuthContexto = createContext();
 
@@ -9,6 +10,7 @@ export const AuthProvider = ({ children }) => {
     const [authState, setAuthState] = useState({
         user: null,
         token: null,
+        refreshToken: null,
         isAuthenticated: false,
         isLoading: true
     });
@@ -52,6 +54,18 @@ export const AuthProvider = ({ children }) => {
         initializeAuth();
     }, []);
 
+    useEffect(() => {
+        // Configurar el callback de refreshToken
+        if (authState.refreshToken) {
+            setRefreshTokenCallback(authState.refreshToken);
+        }
+
+        // Cleanup
+        return () => {
+            setRefreshTokenCallback(null);
+        };
+    }, [authState.refreshToken]);
+
     // Función de login
     const login = useCallback(async (user, token, refreshToken, rememberMe = false) => {
         // Guardar en storage
@@ -71,6 +85,7 @@ export const AuthProvider = ({ children }) => {
         setAuthState({
             user,
             token,
+            refreshToken,
             isAuthenticated: true,
             isLoading: false
         });
@@ -93,6 +108,7 @@ export const AuthProvider = ({ children }) => {
             setAuthState({
                 user: null,
                 token: null,
+                refreshToken: null,
                 isAuthenticated: false,
                 isLoading: false
             });
