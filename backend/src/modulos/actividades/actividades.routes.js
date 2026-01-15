@@ -9,6 +9,7 @@ const actividadesController = require("./actividades.controller")
 
 router.post("/", subir.array('imagenes', 5), actividadesController.crearActividad)
 router.get("/", actividadesController.obtenerTodasActividades)
+router.get("/:id", actividadesController.obtenerActividadPorId)
 router.delete("/:id", actividadesController.eliminarActividad)
 router.put('/:id', subir.array('nuevasImagenes', 5), actividadesController.editarActividad);
 module.exports = router;

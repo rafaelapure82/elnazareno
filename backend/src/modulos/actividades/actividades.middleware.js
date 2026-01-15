@@ -5,7 +5,7 @@ const { v4: uuidv4 } = require('uuid');
 
 const almacenamiento = multer.diskStorage({
     destination: (req, file, cb) => {
-        const rutaCarpeta = path.join(__dirname, './capeta-actividades');
+        const rutaCarpeta = path.join(__dirname, './carpeta-actividades');
 
         if (!fs.existsSync(rutaCarpeta)) {
             fs.mkdirSync(rutaCarpeta, { recursive: true });

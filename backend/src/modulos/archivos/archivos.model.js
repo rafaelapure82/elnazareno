@@ -2,13 +2,15 @@ class archivosModel {
     async subirArchivo(archivo, conexion) {
         const [resultado] = await conexion.query(
             `INSERT INTO archivos_subidos 
-             (nombre_original, nombre_guardado, path, size, mime_type, description) 
-             VALUES (?, ?, ?, ?, ?, ?)`,
+             (nombre_original, nombre_guardado, path, size,nombre,categoria, mime_type, description) 
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
             [
                 archivo.nombre_original,
                 archivo.nombre_guardado,
                 archivo.path,
                 archivo.size,
+                archivo.nombre,
+                archivo.categoria,
                 archivo.mime_type,
                 archivo.description
             ]
@@ -34,8 +36,10 @@ class archivosModel {
                 size, 
                 mime_type, 
                 description,
+                nombre,
+                categoria,
                 created_at,
-                CONCAT('/uploads/', nombre_guardado) as download_url
+                CONCAT('/carpeta-archivos/', nombre_guardado) as download_url
             FROM archivos_subidos 
             WHERE id = ?`,
             [id]
@@ -53,6 +57,8 @@ class archivosModel {
                 size, 
                 mime_type, 
                 description,
+                nombre,
+                categoria,
                 created_at,
                 CONCAT('/uploads/', nombre_guardado) as download_url
             FROM archivos_subidos 
@@ -76,6 +82,26 @@ class archivosModel {
             [id]
         );
         return resultado;
+    }
+
+    async registrarDescarga(id, usuarioId) {
+        await pool.execute(
+            `INSERT INTO descargas_archivos 
+                (archivo_id, usuario_id, fecha_descarga) 
+             VALUES (?, ?, NOW())`,
+            [id, usuarioId]
+        );
+    }
+
+    //  Método para obtener estadísticas de descargas
+    async obtenerEstadisticasDescargas(archivoId) {
+        const [rows] = await pool.execute(
+            `SELECT COUNT(*) as totalDescargas
+             FROM descargas_archivos 
+             WHERE archivo_id = ?`,
+            [archivoId]
+        );
+        return rows[0];
     }
 
 }

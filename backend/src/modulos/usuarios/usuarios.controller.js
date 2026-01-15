@@ -112,6 +112,7 @@ class usuariosController {
 
     //Rutas para usuarios normales
 
+
     async actualizarUsuarioNormal(req, res) {
         try {
             const { id } = req.params;

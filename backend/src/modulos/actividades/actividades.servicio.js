@@ -1,7 +1,7 @@
 const actividadesModel = require("./actividades.model")
 const fs = require('fs');
 const path = require('path');
-const { pool } = require("../../config/baseDatos")
+const { pool } = require("../../config/baseDatos");
 
 class actividadesServicio {
     async crearActividad(titulo, descripcion, imagenes) {
@@ -13,16 +13,19 @@ class actividadesServicio {
 
             actividadesServicio.validarDatosActividad(titulo, descripcion, imagenes);
 
-            const actividadId = await actividadesModel.crearActividad(titulo, descripcion, conexion)
+            const actividad = await actividadesModel.crearActividad(titulo, descripcion, conexion)
 
-            const imagenesGuardadas = await actividadesServicio.procesarImagenes(actividadId, imagenes, conexion);
+            const imagenesGuardadas = await actividadesServicio.procesarImagenes(actividad.id, imagenes, conexion);
+
+            const objetos = imagenesGuardadas.map(url => ({
+                imagen_url: url
+            }))
             await conexion.commit();
-
             return {
-                id: actividadId,
+                id: actividad.id,
                 titulo,
-                descripcion,
-                imagenes: imagenesGuardadas
+                objetos,
+                fecha_creacion: actividad.fecha_creacion
             };
         } catch (error) {
             if (conexion) await conexion.rollback();
@@ -43,7 +46,9 @@ class actividadesServicio {
             const actividades = await actividadesModel.obtenerTodasActividades(conexion);
 
             if (!actividades || actividades.length === 0) {
-                throw new Error('No se encontraron actividades');
+                const error = new Error('No se encontraron actividades');
+                error.statusCode = 404;
+                throw error;
             }
 
             // Obtener imágenes para cada actividad
@@ -52,11 +57,44 @@ class actividadesServicio {
             return actividadesConImagenes;
 
         } catch (error) {
-            throw new Error('Error al obtener las actividades');
+            throw error;
         } finally {
             if (conexion) conexion.release();
         }
     }
+
+    async obtenerActividadPorId(actividadId) {
+        let conexion;
+        try {
+            conexion = await pool.getConnection();
+
+            // Validar que la actividad existe
+            await actividadesServicio.validarActividadExiste(actividadId, conexion);
+
+            // Obtener actividad
+            const actividad = await actividadesModel.obtenerActividadPorId(actividadId, conexion);
+
+            if (!actividad || actividad.length === 0) {
+                const error = new Error('Error al obtener la actividad');
+                error.statusCode = 404;
+                throw error;
+            }
+
+            // Obtener imágenes de la actividad
+            const imagenes = await actividadesModel.obtenerImagenesPorActividadId(actividadId, conexion);
+
+            // Agregar imágenes a la actividad
+            actividad.imagenes = imagenes;
+
+            return actividad;
+
+        } catch (error) {
+            throw error;
+        } finally {
+            if (conexion) conexion.release();
+        }
+    }
+
 
     async eliminarActividad(actividadId) {
         let conexion;
@@ -105,12 +143,13 @@ class actividadesServicio {
         try {
             conexion = await pool.getConnection();
             await conexion.beginTransaction();
-
             // Validar que la actividad existe
             const actividadExistente = await actividadesModel.obtenerActividadPorId(actividadId, conexion);
             if (!actividadExistente) {
                 throw new Error('Actividad no encontrada');
             }
+
+            const fecha_creacion = actividadExistente.fecha_creacion
             let tipoValidacion = 'edicion';
             // Validar datos
             actividadesServicio.validarDatosActividad(titulo, descripcion, { length: nuevasImagenes.length }, tipoValidacion);
@@ -144,9 +183,10 @@ class actividadesServicio {
 
             await conexion.commit();
             return {
-                actividadId,
+                id: actividadId,
                 titulo,
                 descripcion,
+                fecha_creacion,
                 imagenes: imagenesActuales,
                 cambios: cambios
             };
@@ -199,8 +239,8 @@ class actividadesServicio {
         const imagenesGuardadas = [];
 
         for (const imagen of imagenes) {
-            const imagenPath = `./capeta-actividades/${imagen.filename}`;
-            console.log("Guardando imagen en DB:", imagenPath);
+            const imagenPath = `/carpeta-actividades/${imagen.filename}`;
+
             await actividadesModel.crearImagenActividad(actividadId, imagenPath, conexion);
             imagenesGuardadas.push(imagenPath);
         }
@@ -212,7 +252,7 @@ class actividadesServicio {
         if (!imagenes) return;
 
         imagenes.forEach(imagen => {
-            const filePath = path.join(__dirname, '../capeta-actividades', imagen.filename);
+            const filePath = path.join(__dirname, '../carpeta-actividades', imagen.filename);
             if (fs.existsSync(filePath)) {
                 fs.unlinkSync(filePath);
             }
@@ -241,7 +281,9 @@ class actividadesServicio {
             const actividadesConImagenesPromises = actividades.map(async (actividad, index) => {
                 try {
                     const imagenes = await actividadesModel.obtenerImagenesPorActividad(actividad.id, conexion);
-
+                    // console.log(`Imagenes para actividad ${actividad.id}:`, imagenes);
+                    // console.log("ubicacion", __filename);
+                    // console.log("ubicaasdasdsacion", __dirname);
                     return {
                         ...actividad,
                         imagenes: imagenes
@@ -281,7 +323,9 @@ class actividadesServicio {
             );
 
             if (actividades.length === 0) {
-                throw new Error('Actividad no encontrada');
+                const error = new Error('No se encontro la actividad');
+                error.statusCode = 404;
+                throw error;
             }
 
         } catch (error) {
@@ -373,7 +417,7 @@ class actividadesServicio {
         for (const [index, imagen] of nuevasImagenes.entries()) {
             try {
 
-                const imagenPath = `./capeta-actividades/${imagen.filename}`;
+                const imagenPath = `/carpeta-actividades/${imagen.filename}`;
                 await actividadesModel.crearImagenActividad(actividadId, imagenPath, conexion);
                 imagenesGuardadas.push(imagenPath);
 

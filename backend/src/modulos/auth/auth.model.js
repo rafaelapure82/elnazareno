@@ -26,7 +26,6 @@ class AuthModel {
 
     // Obtener usuario por email o username-
     async obtenerUsuarioPorCredenciales(identificador) {
-        probarConexion
         const [rows] = await pool.execute(
             `SELECT id,nombre, usuario, correo, contraseña, rol
        FROM usuarios 

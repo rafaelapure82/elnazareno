@@ -13,7 +13,7 @@ const InicioPagina = () => {
     const {
         user,
     } = useAuth();
-    console.log(user);
+
     if (error) {
         return (
             <div className="p-6">

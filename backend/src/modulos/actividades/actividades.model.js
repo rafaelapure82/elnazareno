@@ -4,7 +4,14 @@ class actividadesModel {
             `INSERT INTO actividades (titulo, descripcion) VALUES (?, ?)`,
             [titulo, descripcion]
         );
-        return resultado.insertId;
+
+
+        const [actividades] = await conexion.execute(
+            `SELECT * FROM actividades WHERE id = ?`,
+            [resultado.insertId]
+        );
+
+        return actividades[0];;
     }
 
     async crearImagenActividad(actividadId, imagenUrl, conexion) {

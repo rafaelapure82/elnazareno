@@ -47,7 +47,7 @@ const upload = multer({
     storage: storage,
     fileFilter: fileFilter,
     limits: {
-        fileSize: 5 * 1024 * 1024,
+        fileSize: 100 * 1024 * 1024,
         files: 1
     }
 }).single('archivo'); // 'archivo' es el nombre del campo en el formulario  

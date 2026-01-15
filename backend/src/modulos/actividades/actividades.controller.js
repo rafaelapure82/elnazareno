@@ -37,11 +37,37 @@ class actividadesController {
             });
 
         } catch (error) {
-            console.error('Error al obtener actividades:', error);
+
+            if (error.message === 'No se encontraron actividades') {
+                return res.status(404).json({
+                    success: false,
+                    message: error.message
+                });
+            }
+
             res.status(500).json({
                 success: false,
-                message: 'Error al obtener las actividades',
-                error: error.message
+                message: error.message || "Error al obtener las actividades"
+            });
+
+        }
+    }
+    async obtenerActividadPorId(req, res) {
+        try {
+            const { id } = req.params;
+            const actividad = await actividadesServicio.obtenerActividadPorId(id);
+
+            res.status(200).json({
+                success: true,
+                message: "Actividad obtenida exitosamente",
+                data: actividad
+            });
+        } catch (error) {
+            let statusCode = error.statusCode || 500
+
+            res.status(statusCode).json({
+                success: false,
+                message: error.message || "Error al obtener la actividad"
             });
         }
     }
@@ -102,21 +128,21 @@ class actividadesController {
             }
 
             // Parsear imágenes a eliminar si vienen como string
-            let imagenesAEliminarArray = [];
-            if (imagenesAEliminar) {
-                if (typeof imagenesAEliminar === 'string') {
-                    imagenesAEliminarArray = imagenesAEliminar.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));
-                } else if (Array.isArray(imagenesAEliminar)) {
-                    imagenesAEliminarArray = imagenesAEliminar.map(id => parseInt(id)).filter(id => !isNaN(id));
-                }
-            }
+            // let imagenesAEliminarArray = [];
+            // if (imagenesAEliminar) {
+            //     if (typeof imagenesAEliminar === 'string') {
+            //         imagenesAEliminarArray = imagenesAEliminar.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));
+            //     } else if (Array.isArray(imagenesAEliminar)) {
+            //         imagenesAEliminarArray = imagenesAEliminar.map(id => parseInt(id)).filter(id => !isNaN(id));
+            //     }
+            // }
 
             const actividadActualizada = await actividadesServicio.editarActividad(
                 actividadId,
                 titulo,
                 descripcion,
                 nuevasImagenes,
-                imagenesAEliminarArray
+                imagenesAEliminar
             );
 
             res.status(200).json({

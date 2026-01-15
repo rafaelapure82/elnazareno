@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express()
 const cors = require("cors");
+const path = require('path');
 const cookieParser = require('cookie-parser');
 require('dotenv').config();
 const noEncontrado = require("./middleware/noEncontrado")
@@ -16,6 +17,12 @@ const corsOptions = {
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 };
+
+//*Servir Carpeta
+const rutaImagenes = path.join(__dirname, 'modulos', 'actividades', 'carpeta-actividades');
+app.use('/api/carpeta-actividades', express.static(rutaImagenes));
+
+
 
 //*middlewares 
 app.use(cors(corsOptions));

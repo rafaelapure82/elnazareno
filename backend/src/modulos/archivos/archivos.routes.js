@@ -8,4 +8,6 @@ router.get("/", archivosController.obtenerTodosArchivos)
 router.get("/buscar", archivosController.buscarArchivo)
 router.get("/:id", archivosController.obtenerArchivoPorId)
 router.delete("/:id", archivosController.eliminarArchivo)
+router.get("/descargar/:id", archivosController.descargarArchivo)
+router.get("/stream/:id", archivosController.descargarArchivoStream)
 module.exports = router;
