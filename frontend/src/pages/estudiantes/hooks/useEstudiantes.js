@@ -226,11 +226,11 @@ export const useEstudiantes = () => {
     const cargarEstudiantes = useCallback(async () => {
         // Si ya se cargó, no cargar de nuevo
         if (hasLoadedRef.current && !loading) {
-            console.log('📭 Ya se cargaron los estudiantes, omitiendo...');
+            // console.log('📭 Ya se cargaron los estudiantes, omitiendo...');
             return;
         }
 
-        console.log('📥 Cargando estudiantes...');
+        // console.log('📥 Cargando estudiantes...');
         setLoading(true);
         setError(null);
 
@@ -266,9 +266,12 @@ export const useEstudiantes = () => {
 
         try {
             const response = await EstudiantesServicio.buscarPorCedula(cedula);
-            const estudiantesList = response.success ?
-                [EstudiantesAdaptador.fromApiResponse(response)] : [];
-            setEstudiantes(estudiantesList);
+            console.log('Respuesta búsqueda:', response.data);
+            const estudiantesList = response.data.success ?
+                [EstudiantesAdaptador.fromApiResponse(response.data)] : [];
+
+            console.log(estudiantesList)
+            // setEstudiantes(estudiantesList);
         } catch (err) {
             setError(err.message || 'Error al buscar estudiante');
         } finally {
@@ -334,13 +337,13 @@ export const useEstudiantes = () => {
 
     // Actualizar filtros
     const actualizarFiltros = useCallback((newFilters) => {
-        console.log('Actualizando filtros:', newFilters);
+        // console.log('Actualizando filtros:', newFilters);
         setFilters(prev => ({ ...prev, ...newFilters }));
     }, []);
 
     // Resetear filtros
     const resetearFiltros = useCallback(() => {
-        console.log('Reseteando filtros');
+        // console.log('Reseteando filtros');
         setFilters({
             searchQuery: '',
             genero: 'todos',
@@ -353,7 +356,7 @@ export const useEstudiantes = () => {
 
     // ESTUDIANTES FILTRADOS Y ORDENADOS - Usar useMemo
     const estudiantesFiltrados = useMemo(() => {
-        console.log('🔍 Aplicando filtros y ordenamiento...');
+        // console.log('🔍 Aplicando filtros y ordenamiento...');
 
         if (loading) return [];
 

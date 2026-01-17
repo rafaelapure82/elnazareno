@@ -5,7 +5,8 @@ class personalController {
     async registrarPersonal(req, res) {
 
         const archivos = req.files || [];
-        const datos = req.body;
+        const info = req.body;
+        const datos = JSON.parse(info.data)
         try {
             if (!datos.tipo || !datos.cedula) {
                 return res.status(400).json({
@@ -19,10 +20,9 @@ class personalController {
             res.status(201).json({
                 success: true,
                 message: `${resultado.tipo} registrado correctamente`,
-                data: {
-                    id: resultado.id,
-                    archivosProcesados: resultado.archivosProcesados
-                }
+                data: resultado.data,
+                archivosProcesados: resultado.archivosProcesados
+
             });
         } catch (error) {
             // Eliminar archivos subidos en caso de error
@@ -44,9 +44,10 @@ class personalController {
             const { tipo } = req.query;
             const resultado = await personalServicio.obtenerPersonalPorTipo(tipo);
 
+
             res.status(200).json({
                 success: true,
-                data: resultado.personal == 0 ? " No hay personal registrado" : resultado.personal,
+                data: resultado.personal == 0 ? "No hay personal registrado" : resultado.personal,
                 meta: {
                     total: resultado.total,
                     filtro: resultado.filtro

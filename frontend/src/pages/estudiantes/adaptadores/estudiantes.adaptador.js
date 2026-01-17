@@ -71,22 +71,55 @@ export class EstudiantesAdaptador {
 
     // Adaptar respuesta de la API
     static fromApiResponse(apiData) {
+        // console.log('Adaptando estudiante:', apiData)
+        // if (!apiData.success) {
+        //     throw new Error(apiData.message || 'Error en la respuesta del servidor');
+        // }
+        // const estudiante = apiData.data;
+
+        // return {
+        //     id: estudiante.id,
+        //     nombres: estudiante.nombres,
+        //     apellidos: estudiante.apellidos,
+        //     nombreCompleto: `${estudiante.nombres} ${estudiante.apellidos}`,
+        //     fecha_nacimiento: estudiante.fecha_nacimiento,
+        //     genero: estudiante.genero,
+        //     tipo_cedula: estudiante.tipo_cedula,
+        //     cedula: estudiante.cedula,
+        //     cedula_escolar: estudiante.cedula_escolar,
+        //     representante: estudiante.representante ? {
+        //         id: estudiante.representante.id,
+        //         nombres: estudiante.representante.nombres,
+        //         apellidos: estudiante.representante.apellidos,
+        //         nombreCompleto: `${estudiante.representante.nombres} ${estudiante.representante.apellidos}`,
+        //         relacion: estudiante.representante.relacion,
+        //         email: estudiante.representante.email,
+        //         telefono: estudiante.representante.telefono,
+        //         ocupacion: estudiante.representante.ocupacion,
+        //         tipo_cedula: estudiante.representante.tipo_cedula,
+        //         cedula: estudiante.representante.cedula
+        //     } : null,
+        //     edad: this.calcularEdad(estudiante.fecha_nacimiento),
+        //     created_at: estudiante.created_at
+        // };
+
+        console.log('Adaptando estudiante:', apiData);
+
         if (!apiData.success) {
             throw new Error(apiData.message || 'Error en la respuesta del servidor');
         }
 
-        const estudiante = apiData.data;
-
-        return {
+        const data = apiData.data;
+        const adaptar = (estudiante) => ({
             id: estudiante.id,
             nombres: estudiante.nombres,
             apellidos: estudiante.apellidos,
             nombreCompleto: `${estudiante.nombres} ${estudiante.apellidos}`,
-            fecha_nacimiento: estudiante.fecha_nacimiento,
+            fecha_nacimiento: estudiante.fecha_nacimiento || estudiante.fechaNacimiento,
             genero: estudiante.genero,
-            tipo_cedula: estudiante.tipo_cedula,
+            tipo_cedula: estudiante.tipo_cedula || estudiante.tipoCedula,
             cedula: estudiante.cedula,
-            cedula_escolar: estudiante.cedula_escolar,
+            cedula_escolar: estudiante.cedula_escolar || estudiante.cedulaEscolar,
             representante: estudiante.representante ? {
                 id: estudiante.representante.id,
                 nombres: estudiante.representante.nombres,
@@ -99,9 +132,12 @@ export class EstudiantesAdaptador {
                 tipo_cedula: estudiante.representante.tipo_cedula,
                 cedula: estudiante.representante.cedula
             } : null,
-            edad: this.calcularEdad(estudiante.fecha_nacimiento),
-            created_at: estudiante.created_at
-        };
+            edad: this.calcularEdad(estudiante.fecha_nacimiento || estudiante.fechaNacimiento),
+            created_at: estudiante.created_at || estudiante.createdAt
+        });
+
+        return Array.isArray(data) ? data.map(adaptar) : adaptar(data);
+
     }
 
     // Adaptar lista de estudiantes

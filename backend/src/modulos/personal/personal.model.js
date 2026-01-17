@@ -29,26 +29,26 @@ class personalModel {
 
         const valores = [
             personalData.tipo,
-            personalData.primerNombre || null,
-            personalData.segundoNombre || null,
-            personalData.primerApellido || null,
-            personalData.segundoApellido || null,
+            personalData.primer_nombre || null,
+            personalData.segundo_nombre || null,
+            personalData.primer_apellido || null,
+            personalData.segundo_apellido || null,
             personalData.cedula || null,
             personalData.telefono || null,
             personalData.correo || null,
-            personalData.fechaNacimiento || null,
+            personalData.fecha_nacimiento || null,
             personalData.sexo || null,
-            personalData.cargoVoucher || null,
-            personalData.codigoCargo || null,
+            personalData.cargo_voucher || null,
+            personalData.codigo_cargo || null,
             personalData.dependencia || null,
-            personalData.codigoDependencia || null,
-            personalData.cargaHoraria || null,
-            personalData.fechaIngresoMPPE || null,
-            personalData.titulosProfesionales || null,
-            personalData.tipoTitulo || null,
-            personalData.tallaFranela || null,
-            personalData.tallaPantalon || null,
-            personalData.tallaZapato || null
+            personalData.codigo_dependencia || null,
+            personalData.carga_horaria || null,
+            personalData.fecha_ingreso_mppe || null,
+            personalData.titulos_profesionales || null,
+            personalData.tipo_titulo || null,
+            personalData.talla_franela || null,
+            personalData.talla_pantalon || null,
+            personalData.talla_zapato || null
         ]
         const [resultado] = await conexion.execute(query, valores);
         return resultado.insertId;

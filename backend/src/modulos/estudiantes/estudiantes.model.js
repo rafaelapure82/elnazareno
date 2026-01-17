@@ -411,6 +411,163 @@ class estudiantesModel {
         };
     }
 
+    async buscarEstudiantes(criterio) {
+        let query = `
+            SELECT 
+                e.id,
+                e.nombres as estudiante_nombres,
+                e.apellidos as estudiante_apellidos,
+                e.fecha_nacimiento,
+                e.genero,
+                e.tipo_cedula as estudiante_tipo_cedula,
+                e.cedula as estudiante_cedula,
+                e.cedula_escolar,
+                e.representante_id,
+                e.created_at as estudiante_created_at,
+                
+                -- Datos del representante
+                r.id as representante_id,
+                r.nombres as representante_nombres,
+                r.apellidos as representante_apellidos,
+                r.relacion,
+                r.email as representante_email,
+                r.telefono as representante_telefono,
+                r.ocupacion,
+                r.tipo_cedula as representante_tipo_cedula,
+                r.cedula as representante_cedula,
+                r.created_at as representante_created_at
+                
+            FROM estudiantes e
+            INNER JOIN representantes r ON e.representante_id = r.id
+            WHERE 1 = 1
+        `;
+
+        const params = [];
+
+        // Si hay criterio de búsqueda
+        if (criterio && criterio.trim()) {
+            const searchTerm = `%${criterio}%`;
+
+            query += `
+                AND (
+                    -- Búsqueda por nombre completo del estudiante
+                    CONCAT(e.nombres, ' ', e.apellidos) LIKE ?
+                    OR CONCAT(e.apellidos, ' ', e.nombres) LIKE ?
+                    
+                    -- Búsqueda por nombre individual del estudiante
+                    OR e.nombres LIKE ?
+                    OR e.apellidos LIKE ?
+                    
+                    -- Búsqueda por cédula del estudiante
+                    OR e.cedula LIKE ?
+                    
+                    -- Búsqueda por cédula escolar
+                    OR e.cedula_escolar LIKE ?
+                    
+                    -- Búsqueda por nombre completo del representante
+                    OR CONCAT(r.nombres, ' ', r.apellidos) LIKE ?
+                    
+                    -- Búsqueda por nombre individual del representante
+                    OR r.nombres LIKE ?
+                    OR r.apellidos LIKE ?
+                    
+                    -- Búsqueda por cédula del representante
+                    OR r.cedula LIKE ?
+                )
+            `;
+
+            // Agregar 10 veces el mismo término para cada condición LIKE
+            for (let i = 0; i < 10; i++) {
+                params.push(searchTerm);
+            }
+        }
+
+        query += ` ORDER BY e.apellidos, e.nombres LIMIT 50`;
+
+        const [rows] = await pool.execute(query, params);
+        return rows;
+    }
+
+    async buscarEstudiantesAvanzado(filtros) {
+        let query = `
+            SELECT 
+                e.id,
+                e.nombres as estudiante_nombres,
+                e.apellidos as estudiante_apellidos,
+                e.fecha_nacimiento,
+                e.genero,
+                e.tipo_cedula as estudiante_tipo_cedula,
+                e.cedula as estudiante_cedula,
+                e.cedula_escolar,
+                e.representante_id,
+                e.created_at as estudiante_created_at,
+                
+                r.id as representante_id,
+                r.nombres as representante_nombres,
+                r.apellidos as representante_apellidos,
+                r.relacion,
+                r.email as representante_email,
+                r.telefono as representante_telefono,
+                r.ocupacion,
+                r.tipo_cedula as representante_tipo_cedula,
+                r.cedula as representante_cedula,
+                r.created_at as representante_created_at
+                
+            FROM estudiantes e
+            INNER JOIN representantes r ON e.representante_id = r.id
+            WHERE 1 = 1
+        `;
+
+        const params = [];
+
+        // Aplicar filtros específicos
+        if (filtros.nombreEstudiante) {
+            query += ` AND (e.nombres LIKE ? OR e.apellidos LIKE ?)`;
+            const term = `%${filtros.nombreEstudiante}%`;
+            params.push(term, term);
+        }
+
+        if (filtros.cedulaEstudiante) {
+            query += ` AND e.cedula LIKE ?`;
+            params.push(`%${filtros.cedulaEstudiante}%`);
+        }
+
+        if (filtros.cedulaEscolar) {
+            query += ` AND e.cedula_escolar LIKE ?`;
+            params.push(`%${filtros.cedulaEscolar}%`);
+        }
+
+        if (filtros.nombreRepresentante) {
+            query += ` AND (r.nombres LIKE ? OR r.apellidos LIKE ?)`;
+            const term = `%${filtros.nombreRepresentante}%`;
+            params.push(term, term);
+        }
+
+        if (filtros.cedulaRepresentante) {
+            query += ` AND r.cedula LIKE ?`;
+            params.push(`%${filtros.cedulaRepresentante}%`);
+        }
+
+        if (filtros.genero) {
+            query += ` AND e.genero = ?`;
+            params.push(filtros.genero);
+        }
+
+        // Ordenar y limitar
+        query += ` ORDER BY e.apellidos, e.nombres`;
+
+        if (filtros.limit) {
+            query += ` LIMIT ?`;
+            params.push(filtros.limit);
+        } else {
+            query += ` LIMIT 50`;
+        }
+
+        const [rows] = await pool.execute(query, params);
+        return rows;
+    }
+
+
 }
 
 module.exports = new estudiantesModel()

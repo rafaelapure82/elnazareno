@@ -217,6 +217,7 @@ class estudianteServicio {
         }
     }
 
+    //!OJOOO
     async obtenerEstudiantePorCedulaoCiEscolarBD(cedula, cedulaEscolar) {
         let conexion
         try {
@@ -240,7 +241,6 @@ class estudianteServicio {
             throw error
         }
     }
-
     async obtenerTodosEstudiantesBD(filters) {
         try {
             const { page = 1, limit = 10, search, sortBy = 'apellidos', sortOrder = 'asc', exportAll } = filters;
@@ -275,6 +275,115 @@ class estudianteServicio {
             throw new Error(`Error en servicio de estudiantes: ${error.message}`);
         }
     }
+
+    async buscarEstudiantes(criterio) {
+        try {
+            // Validar criterio de búsqueda
+            if (criterio && criterio.trim().length < 2) {
+                throw new Error('El criterio de búsqueda debe tener al menos 2 caracteres');
+            }
+
+            // Normalizar criterio
+            const criterioNormalizado = criterio ? criterio.trim() : '';
+
+            // Buscar estudiantes
+            const estudiantes = await estudiantesModel.buscarEstudiantes(criterioNormalizado);
+
+            // Formatear respuesta
+            const resultado = estudiantes.map(estudiante => ({
+
+                id: estudiante.id,
+                nombres: estudiante.estudiante_nombres,
+                apellidos: estudiante.estudiante_apellidos,
+                nombreCompleto: `${estudiante.estudiante_nombres} ${estudiante.estudiante_apellidos}`,
+                fechaNacimiento: estudiante.fecha_nacimiento,
+                genero: estudiante.genero,
+                tipoCedula: estudiante.estudiante_tipo_cedula,
+                cedula: estudiante.estudiante_cedula,
+                cedulaEscolar: estudiante.cedula_escolar,
+                edad: estudiante.fecha_nacimiento,
+                createdAt: estudiante.estudiante_created_at
+
+                ,
+                representante: {
+                    id: estudiante.representante_id,
+                    nombres: estudiante.representante_nombres,
+                    apellidos: estudiante.representante_apellidos,
+                    nombreCompleto: `${estudiante.representante_nombres} ${estudiante.representante_apellidos}`,
+                    relacion: estudiante.relacion,
+                    email: estudiante.representante_email,
+                    telefono: estudiante.representante_telefono,
+                    ocupacion: estudiante.ocupacion,
+                    tipoCedula: estudiante.representante_tipo_cedula,
+                    cedula: estudiante.representante_cedula,
+                    createdAt: estudiante.representante_created_at
+                }
+            }));
+
+            return {
+                success: true,
+                data: resultado,
+                total: resultado.length,
+                criterio: criterioNormalizado
+            };
+
+        } catch (error) {
+            console.error('Error en servicio de búsqueda de estudiantes:', error);
+            throw error;
+        }
+    }
+
+    async buscarEstudiantesAvanzado(filtros) {
+        try {
+            // Validar filtros
+            this.validarFiltros(filtros);
+
+            // Buscar con filtros específicos
+            const estudiantes = await estudiantesModel.buscarEstudiantesAvanzado(filtros);
+
+            // Formatear respuesta
+            const resultado = estudiantes.map(estudiante => ({
+                estudiante: {
+                    id: estudiante.id,
+                    nombres: estudiante.estudiante_nombres,
+                    apellidos: estudiante.estudiante_apellidos,
+                    nombreCompleto: `${estudiante.estudiante_nombres} ${estudiante.estudiante_apellidos}`,
+                    fechaNacimiento: estudiante.fecha_nacimiento,
+                    genero: estudiante.genero,
+                    tipoCedula: estudiante.estudiante_tipo_cedula,
+                    cedula: estudiante.estudiante_cedula,
+                    cedulaEscolar: estudiante.cedula_escolar,
+                    edad: this.calcularEdad(estudiante.fecha_nacimiento),
+                    createdAt: estudiante.estudiante_created_at
+                },
+                representante: {
+                    id: estudiante.representante_id,
+                    nombres: estudiante.representante_nombres,
+                    apellidos: estudiante.representante_apellidos,
+                    nombreCompleto: `${estudiante.representante_nombres} ${estudiante.representante_apellidos}`,
+                    relacion: estudiante.relacion,
+                    email: estudiante.representante_email,
+                    telefono: estudiante.representante_telefono,
+                    ocupacion: estudiante.ocupacion,
+                    tipoCedula: estudiante.representante_tipo_cedula,
+                    cedula: estudiante.representante_cedula,
+                    createdAt: estudiante.representante_created_at
+                }
+            }));
+
+            return {
+                success: true,
+                data: resultado,
+                total: resultado.length,
+                filtros: filtros
+            };
+
+        } catch (error) {
+            console.error('Error en búsqueda avanzada de estudiantes:', error);
+            throw error;
+        }
+    }
+
 }
 
 module.exports = new estudianteServicio();

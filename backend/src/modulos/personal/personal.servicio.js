@@ -20,12 +20,12 @@ class personalServicio {
             }
 
             // Formatear datos
-            const personalData = this.formatearFechas(datos);
-
+            // const personalData = this.formatearFechas(datos);
+            // console.log("holaquetal", personalData)
 
             // Crear registro principal
 
-            const personalId = await personalModel.crearPersonal(personalData, conexion);
+            const personalId = await personalModel.crearPersonal(datos, conexion);
             if (!personalId) {
                 throw new Error('Error al crear el registro de personal');
             }
@@ -43,10 +43,14 @@ class personalServicio {
                     }
                 }
             }
+
+
+
+            const personal = await personalModel.obtenerDatosPersonalPorId(personalId, conexion)
             conexion.commit();
             return {
                 id: personalId,
-                tipo: datos.tipo,
+                data: personal,
                 archivosProcesados: archivos ? archivos.length : 0
             };
         } catch (error) {
@@ -292,6 +296,7 @@ class personalServicio {
     }
 
     formatearFechas(datos) {
+
         return {
             ...datos,
             fechaNacimiento: new Date(datos.fechaNacimiento).toISOString().split('T')[0],

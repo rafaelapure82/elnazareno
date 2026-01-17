@@ -11,7 +11,9 @@ export class EstudiantesServicio {
     // Buscar estudiante por cédula o cédula escolar
     static async buscarPorCedula(cedula) {
         // POST /estudiantes/buscar-cedula
-        return await axiosInstance.post('/estudiantes/buscar-cedula', { cedula });
+        return await axiosInstance.post('/estudiantes/buscar', {
+            q: cedula
+        });
     }
 
     // Obtener estudiante por ID

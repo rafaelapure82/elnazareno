@@ -285,17 +285,17 @@ export function Sidebar({ sidebarOpen, setSidebarOpen }) {
         },
         {
             label: "Administrativo",
-            to: "/administrativos",
+            to: "/personal/administrativos",
             icon: <FaUserTie className="text-xl" />
         },
         {
             label: "Docentes",
-            to: "/docentes",
+            to: "/personal/docentes",
             icon: <FaChalkboardTeacher className="text-xl" />
         },
         {
             label: "Obreros",
-            to: "/obreros",
+            to: "/personal/obreros",
             icon: <FaHardHat className="text-xl" />
         },
         {

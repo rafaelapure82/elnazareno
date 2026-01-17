@@ -8,6 +8,13 @@ import InicioPagina from '../pages/inicio/componentes/InicioPagina'
 import ActividadesPage from '../pages/actividades/paginas/ActividadesPage';
 import { ReportesPage } from '../pages/reportes';
 import { EstudiantesPage } from '../pages/estudiantes';
+import {
+    PersonalLayout,
+    DocentesPage,
+    AdministrativosPage,
+    ObrerosPage
+} from '../pages/personal';
+
 
 const AppRouter = () => {
     return (
@@ -30,7 +37,11 @@ const AppRouter = () => {
                     <Route path="/actividades" element={<ActividadesPage />} />
                     <Route path="/reportes" element={<ReportesPage />} />
                     <Route path="/estudiantes" element={<EstudiantesPage />} />
-
+                    <Route path="/personal" element={<PersonalLayout />}>
+                        <Route path="docentes" element={<DocentesPage />} />
+                        <Route path="administrativos" element={<AdministrativosPage />} />
+                        <Route path="obreros" element={<ObrerosPage />} />
+                    </Route>
 
                     {/* Perfil - Acceso básico autenticado
                     <Route path="/profile" element={<ProfilePage />} />

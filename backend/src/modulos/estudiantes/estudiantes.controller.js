@@ -85,13 +85,14 @@ class estudiantesController {
 
     async obtenerEstudiantePorCedulaoCiEscolar(req, res) {
         const { cedula, cedula_escolar } = req.body;
+        console.log("cedula:", cedula, "cedula escolar:", cedula_escolar)
         try {
 
-            const resultado = await estudianteServicio.obtenerEstudiantePorCedulaoCiEscolarBD(cedula, cedula_escolar)
+            // const resultado = await estudianteServicio.obtenerEstudiantePorCedulaoCiEscolarBD(cedula, cedula_escolar)
             res.status(200).json({
                 success: true,
                 message: 'Estudiantes obtenido exitosamente',
-                data: resultado
+                data: cedula
             });
 
         } catch (error) {
@@ -105,7 +106,7 @@ class estudiantesController {
 
     async obtenerTodosEstudiantes(req, res) {
         try {
-
+            console.log("aquiii obtener estudiantes, 109linea")
             const { page = 1, limit = 10, search, sortBy = 'apellidos', sortOrder = 'asc', exportAll } = req.query;
 
             const resultado = await estudianteServicio.obtenerTodosEstudiantesBD({
@@ -132,6 +133,89 @@ class estudiantesController {
         }
     }
 
+
+    async buscarEstudiantes(req, res) {
+        console.log("llega al controlador");
+        try {
+            const { q } = req.body; // q = query parameter
+            console.log(req.body);
+            // Validar que haya un criterio de búsqueda
+            if (!q || q.trim().length === 0) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Debe proporcionar un criterio de búsqueda (parámetro "q")',
+                    data: []
+                });
+            }
+
+            // Validar longitud mínima
+            if (q.trim().length < 2) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'El criterio de búsqueda debe tener al menos 2 caracteres',
+                    data: []
+                });
+            }
+
+            // Ejecutar búsqueda
+            const resultado = await estudianteServicio.buscarEstudiantes(q);
+
+            res.status(200).json(resultado);
+
+        } catch (error) {
+            console.error('Error en controlador de búsqueda de estudiantes:', error);
+
+            const statusCode = error.message.includes('Debe proporcionar') ? 400 : 500;
+
+            res.status(statusCode).json({
+                success: false,
+                message: error.message || 'Error al buscar estudiantes',
+                data: [],
+                error: process.env.NODE_ENV === 'development' ? error.stack : undefined
+            });
+        }
+    }
+
+
+    async buscarEstudiantesAvanzado(req, res) {
+        try {
+            const {
+                nombreEstudiante,
+                cedulaEstudiante,
+                cedulaEscolar,
+                nombreRepresentante,
+                cedulaRepresentante,
+                genero,
+                limit = 50
+            } = req.query;
+
+            // Construir objeto de filtros
+            const filtros = {};
+
+            if (nombreEstudiante) filtros.nombreEstudiante = nombreEstudiante;
+            if (cedulaEstudiante) filtros.cedulaEstudiante = cedulaEstudiante;
+            if (cedulaEscolar) filtros.cedulaEscolar = cedulaEscolar;
+            if (nombreRepresentante) filtros.nombreRepresentante = nombreRepresentante;
+            if (cedulaRepresentante) filtros.cedulaRepresentante = cedulaRepresentante;
+            if (genero) filtros.genero = genero;
+            if (limit) filtros.limit = parseInt(limit);
+
+            // Ejecutar búsqueda avanzada
+            const resultado = await EstudianteServicio.buscarEstudiantesAvanzado(filtros);
+
+            res.status(200).json(resultado);
+
+        } catch (error) {
+            console.error('Error en búsqueda avanzada de estudiantes:', error);
+
+            res.status(error.message.includes('Debe proporcionar') ? 400 : 500).json({
+                success: false,
+                message: error.message || 'Error al buscar estudiantes',
+                data: [],
+                error: process.env.NODE_ENV === 'development' ? error.stack : undefined
+            });
+        }
+    }
 
 }
 module.exports = new estudiantesController();
