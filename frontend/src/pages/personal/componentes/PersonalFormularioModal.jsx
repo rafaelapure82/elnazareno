@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import {
     FaUser, FaPhone, FaEnvelope, FaIdCard, FaCalendar,
     FaVenusMars, FaBriefcase, FaBuilding, FaGraduationCap,
-    FaTshirt, FaShoePrints, FaUpload, FaTimes, FaTrash, FaSpinner
+    FaTshirt, FaShoePrints, FaUpload, FaTimes, FaTrash, FaSpinner,
+    FaExclamationTriangle
 } from 'react-icons/fa';
 import ArchivosManejador from './ArchivosManejador';
 import { usePersonalFormulario } from '../hooks/usePersonalFormulario';
@@ -18,11 +19,34 @@ const PersonalFormularioModal = ({
     const [activeTab, setActiveTab] = useState('basica');
     const [submitting, setSubmitting] = useState(false);
 
+    // const {
+    //     formData,
+    //     errors,
+    //     archivos,
+    //     archivosErrors,
+    //     tiposPersonal,
+    //     sexos,
+    //     tiposTitulo,
+    //     tiposArchivo,
+    //     tallasFranela,
+    //     tallasPantalon,
+    //     tallasZapato,
+    //     handleChange,
+    //     handleFileChange,
+    //     handleChangeFileType,
+    //     handleRemoveFile,
+    //     validate,
+    //     resetForm,
+    //     prepareSubmit
+    // } = usePersonalFormulario(initialData, tipo);
+
     const {
         formData,
         errors,
         archivos,
         archivosErrors,
+        loading,
+        errorCarga,
         tiposPersonal,
         sexos,
         tiposTitulo,
@@ -38,6 +62,7 @@ const PersonalFormularioModal = ({
         resetForm,
         prepareSubmit
     } = usePersonalFormulario(initialData, tipo);
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -66,11 +91,61 @@ const PersonalFormularioModal = ({
 
     if (!isOpen) return null;
 
+    // Mostrar estado de carga
+    if (loading) {
+        return (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                <div className="bg-white rounded-xl shadow-2xl w-full max-w-md p-8">
+                    <div className="flex flex-col items-center justify-center">
+                        <FaSpinner className="animate-spin h-12 w-12 text-indigo-600 mb-4" />
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">
+                            Cargando datos del personal...
+                        </h3>
+                        <p className="text-gray-600 text-center">
+                            Por favor espera mientras cargamos la información.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Mostrar error de carga
+    if (errorCarga) {
+        return (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                <div className="bg-white rounded-xl shadow-2xl w-full max-w-md p-8">
+                    <div className="flex flex-col items-center justify-center">
+                        <FaExclamationTriangle className="h-12 w-12 text-red-600 mb-4" />
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">
+                            Error al cargar datos
+                        </h3>
+                        <p className="text-red-600 mb-4 text-center">{errorCarga}</p>
+                        <div className="flex space-x-4">
+                            <button
+                                onClick={handleClose}
+                                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={() => window.location.reload()}
+                                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+                            >
+                                Reintentar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-y-auto">
                 {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b">
+                {/* <div className="flex items-center justify-between p-6 border-b">
                     <div className="flex items-center">
                         {tipo === 'docente' ? (
                             <FaGraduationCap className="h-6 w-6 text-blue-600 mr-3" />
@@ -87,7 +162,72 @@ const PersonalFormularioModal = ({
                     >
                         <FaTimes className="h-5 w-5 text-gray-500" />
                     </button>
+                </div> */}
+
+                <div className="flex items-center justify-between p-6 border-b">
+                    <div className="flex items-center">
+                        {tipo === 'docente' ? (
+                            <FaGraduationCap className="h-6 w-6 text-blue-600 mr-3" />
+                        ) : tipo === 'administrativo' ? (
+                            <FaBriefcase className="h-6 w-6 text-green-600 mr-3" />
+                        ) : (
+                            <FaTshirt className="h-6 w-6 text-orange-600 mr-3" />
+                        )}
+                        <div>
+                            <h2 className="text-2xl font-bold text-gray-900">
+                                {initialData?.id ? 'Editar Personal' : title}
+                            </h2>
+                            {initialData?.id && (
+                                <p className="text-sm text-gray-500 mt-1">
+                                    ID: {initialData.id} • Editando registro existente
+                                </p>
+                            )}
+                        </div>
+                    </div>
+                    <button
+                        onClick={handleClose}
+                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+                        disabled={submitting}
+                    >
+                        <FaTimes className="h-5 w-5 text-gray-500  hover:text-red-400" />
+                    </button>
                 </div>
+
+                {/* Mostrar mensaje si estamos en modo edición */}
+                {initialData?.id && (
+                    <div className="px-6 pt-4">
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                            <div className="flex items-center">
+                                <FaExclamationTriangle className="h-4 w-4 text-blue-600 mr-2" />
+                                <p className="text-sm text-blue-700">
+                                    Estás editando un registro existente. Los cambios se guardarán cuando presiones "Guardar Personal".
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+
+                {/* Tabs */}
+                {/* <div className="border-b">
+                    <div className="flex overflow-x-auto">
+                        {['basica', 'laboral', 'academica', 'archivos'].map(tab => (
+                            <button
+                                key={tab}
+                                onClick={() => setActiveTab(tab)}
+                                className={`px-6 py-4 font-medium text-sm border-b-2 whitespace-nowrap transition-colors ${activeTab === tab
+                                    ? 'border-indigo-600 text-indigo-600'
+                                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                                    }`}
+                            >
+                                {tab === 'basica' && 'Información Básica'}
+                                {tab === 'laboral' && 'Información Laboral'}
+                                {tab === 'academica' && 'Formación Académica'}
+                                {tab === 'archivos' && 'Documentos Adjuntos'}
+                            </button>
+                        ))}
+                    </div>
+                </div> */}
 
                 {/* Tabs */}
                 <div className="border-b">
@@ -96,7 +236,7 @@ const PersonalFormularioModal = ({
                             <button
                                 key={tab}
                                 onClick={() => setActiveTab(tab)}
-                                className={`px-6 py-4 font-medium text-sm border-b-2 whitespace-nowrap transition-colors ${activeTab === tab
+                                className={`px-6 py-4 font-medium text-sm border-b-2 cursor-pointer whitespace-nowrap transition-colors ${activeTab === tab
                                     ? 'border-indigo-600 text-indigo-600'
                                     : 'border-transparent text-gray-500 hover:text-gray-700'
                                     }`}
@@ -552,17 +692,17 @@ const PersonalFormularioModal = ({
 
                     {activeTab === 'archivos' && (
                         <ArchivosManejador
-                            archivos={archivos}
+                            archivos={archivos || []}
                             archivosErrors={archivosErrors}
                             onFileChange={handleFileChange}
                             onChangeFileType={handleChangeFileType}
                             onRemoveFile={handleRemoveFile}
-                            tiposArchivo={tiposArchivo}
+                            tiposArchivo={tiposArchivo || []}
                         />
                     )}
 
                     {/* Navegación entre tabs */}
-                    <div className="flex justify-between items-center pt-6 mt-6 border-t">
+                    {/* <div className="flex justify-between items-center pt-6 mt-6 border-t">
                         <div>
                             {activeTab !== 'basica' && (
                                 <button
@@ -618,7 +758,68 @@ const PersonalFormularioModal = ({
                                 </button>
                             )}
                         </div>
+                    </div> */}
+
+                    {/* Navegación entre tabs */}
+                    <div className="flex justify-between items-center pt-6 mt-6 border-t">
+                        <div>
+                            {activeTab !== 'basica' && (
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const tabs = ['basica', 'laboral', 'academica', 'archivos'];
+                                        const currentIndex = tabs.indexOf(activeTab);
+                                        setActiveTab(tabs[currentIndex - 1]);
+                                    }}
+                                    className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                                    disabled={submitting}
+                                >
+                                    Anterior
+                                </button>
+                            )}
+                        </div>
+
+                        <div className="flex space-x-4">
+                            <button
+                                type="button"
+                                onClick={handleClose}
+                                className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-200  hover:border-gray-500 transition-colors cursor-pointer"
+                                disabled={submitting}
+                            >
+                                Cancelar
+                            </button>
+
+                            {activeTab !== 'archivos' ? (
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const tabs = ['basica', 'laboral', 'academica', 'archivos'];
+                                        const currentIndex = tabs.indexOf(activeTab);
+                                        setActiveTab(tabs[currentIndex + 1]);
+                                    }}
+                                    className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors cursor-pointer"
+                                >
+                                    Siguiente
+                                </button>
+                            ) : (
+                                <button
+                                    type="submit"
+                                    disabled={submitting}
+                                    className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center cursor-pointer"
+                                >
+                                    {submitting ? (
+                                        <>
+                                            <FaSpinner className="animate-spin h-5 w-5 mr-2" />
+                                            {initialData?.id ? 'Actualizando...' : 'Guardando...'}
+                                        </>
+                                    ) : (
+                                        initialData?.id ? 'Actualizar Personal' : 'Guardar Personal'
+                                    )}
+                                </button>
+                            )}
+                        </div>
                     </div>
+
                 </form>
             </div>
         </div>

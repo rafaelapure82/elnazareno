@@ -1,3 +1,4 @@
+const { log } = require("console");
 const { pool } = require("../../config/baseDatos")
 const fs = require('fs');
 class personalModel {
@@ -54,21 +55,29 @@ class personalModel {
         return resultado.insertId;
     }
 
-    async agregarArchivo(personalId, archivoData, conexion) {
-        const query = `
-            INSERT INTO personal_archivos
-            (personal_id, nombre_archivo, ruta_archivo, tipo_archivo) 
-            VALUES (?, ?, ?, ?)
-        `;
+    async agregarArchivo(archivoData, conexion) {
+        const {
+            personal_id,
+            nombre_original,
+            nombre_archivo,
+            ruta_relativa,  // Ej: 'carpeta-personal/nombre.jpg'
+            ruta_completa,  // Ej: 'C:/ruta/carpeta-personal/nombre.jpg'
+            tipo_archivo,
+            mime_type,
+            size_bytes,
+            descripcion = null
+        } = archivoData;
 
-        const valores = [
-            personalId,
-            archivoData.nombreArchivo,
-            archivoData.rutaArchivo,
-            archivoData.tipoArchivo
-        ];
+        const [resultado] = await conexion.query(
+            `INSERT INTO personal_archivos 
+             (personal_id, nombre_original, nombre_archivo, ruta_archivo, 
+              tipo_archivo, mime_type, size_bytes, descripcion) 
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            [personal_id, nombre_original, nombre_archivo, ruta_relativa || nombre_archivo,
+                tipo_archivo, mime_type, size_bytes, descripcion]
+        );
 
-        await conexion.execute(query, valores);
+        return resultado.insertId;
     }
 
     async actualizarPersonal(id, datosActualizados, conexion) {
@@ -127,6 +136,15 @@ class personalModel {
         return rows;
     }
 
+    async obtenerArchivoPorId(archivoId, conexion) {
+        const [archivos] = await conexion.query(
+            `SELECT * FROM personal_archivos WHERE id = ?`,
+            [archivoId]
+        );
+
+        return archivos[0] || null;
+    }
+
     async eliminarArchivosPorPersonalId(id, conexion) {
         try {
             const query = `DELETE FROM personal_archivos WHERE personal_id = ?`;
@@ -135,6 +153,36 @@ class personalModel {
 
         } catch (error) {
             console.error('Error en modelo al eliminar archivos:', error);
+            throw error;
+        }
+    }
+
+    async obtenerPersonalBasicoPorIds(ids = [], conexion) {
+        try {
+            if (!Array.isArray(ids) || ids.length === 0) {
+                return [];
+            }
+
+            const idsValidos = ids.filter(id =>
+                Number.isInteger(Number(id)) && Number(id) > 0
+            ).map(id => Number(id));
+            if (idsValidos.length === 0) {
+                return [];
+            }
+
+            const placeholders = idsValidos.map(() => '?').join(',');
+            const query = `
+                SELECT * FROM personal 
+                WHERE id IN (${placeholders})
+                ORDER BY FIELD(id, ${placeholders})
+            `;
+
+            const params = [...idsValidos, ...idsValidos];
+            const [rows] = await conexion.execute(query, params);
+
+            return rows;
+        } catch (error) {
+            console.error('Error en PersonalModel.obtenerPersonalBasicoPorIds:', error);
             throw error;
         }
     }
@@ -192,11 +240,47 @@ class personalModel {
         }
 
         const archivosPersonales = await this.obtenerArchivosPersonalPorId(id, conexion);
-        console.log(typeof archivosPersonales);
+        const archivos = archivosPersonales.length > 0 ? archivosPersonales : "La persona no tiene archivos cargados";
         return {
-            datosPersonales,
-            archivosPersonales: archivosPersonales.length > 0 ? archivosPersonales : "La persona no tiene archivos cargados"
+            ...datosPersonales, archivos
+
         }
+    }
+
+    async existePersonal(personalId, conexion) {
+        const [[{ existe }]] = await conexion.query(
+            `SELECT COUNT(*) as existe FROM personal WHERE id = ?`,
+            [personalId]
+        );
+
+        return parseInt(existe) > 0;
+    }
+
+    formatearTamanio(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    formatearArchivos(archivos) {
+        return archivos.map(archivo => ({
+            id: archivo.id,
+            personalId: archivo.personal_id,
+            nombreOriginal: archivo.nombre_original,
+            nombreArchivo: archivo.nombre_archivo,
+            rutaArchivo: archivo.ruta_archivo,
+            tipoArchivo: archivo.tipo_archivo,
+            mimeType: archivo.mime_type,
+            sizeBytes: archivo.size_bytes,
+            sizeFormateado: this.formatearTamanio(archivo.size_bytes),
+            descripcion: archivo.descripcion,
+            fechaSubida: archivo.fecha_subida,
+            fechaSubidaFormateada: new Date(archivo.fecha_subida).toLocaleString('es-ES'),
+            url: `/api/${archivo.ruta_archivo}`, // Ruta para acceder
+            puedeEliminar: true
+        }));
     }
 
     async obtenerConexion() {

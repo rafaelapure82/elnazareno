@@ -1,6 +1,6 @@
 const personalModel = require("./personal.model")
 const fs = require("fs")
-
+const path = require("path")
 class personalServicio {
 
     async registrarPersonal(datos, archivos) {
@@ -24,7 +24,6 @@ class personalServicio {
             // console.log("holaquetal", personalData)
 
             // Crear registro principal
-
             const personalId = await personalModel.crearPersonal(datos, conexion);
             if (!personalId) {
                 throw new Error('Error al crear el registro de personal');
@@ -61,6 +60,136 @@ class personalServicio {
                 await conexion.release();
             }
         }
+    }
+
+    async registrarInformacionPersonal(datos) {
+        let conexion;
+        try {
+            conexion = await personalModel.obtenerConexion();
+
+            //Validar tipo cedula
+            if (!this.validarTipoPersonal(datos.tipo)) {
+                throw new Error('Tipo de personal no válido');
+            }
+
+            // Validar cédula única
+            const cedulaExiste = await this.validarCedulaUnica(datos.cedula, conexion);
+            if (cedulaExiste) {
+                throw new Error('La cédula ya está registrada');
+            }
+
+            // Crear registro principal
+            const personalId = await personalModel.crearPersonal(datos, conexion);
+            if (!personalId) {
+                throw new Error('Error al crear el registro de personal');
+            }
+
+            const personal = await personalModel.obtenerDatosPersonalPorId(personalId, conexion)
+            return {
+                id: personalId,
+                data: personal,
+            };
+        } catch (error) {
+            conexion.rollback();
+            throw error;
+        } finally {
+            if (conexion) {
+                await conexion.release();
+            }
+        }
+    }
+
+    async registrarArchivoPorId(personalId, archivos, descripciones = {}) {
+        let conexion;
+
+        try {
+            // Validar que el personal existe
+            conexion = await personalModel.obtenerConexion();
+            // console.log("archiv", archivos)
+            const existePersonal = await personalModel.existePersonal(personalId, conexion);
+            if (!existePersonal) {
+                throw new Error(`Personal con ID ${personalId} no existe`);
+            }
+
+            // Validar que hay archivos
+            if (!archivos || archivos.length === 0) {
+                throw new Error('No se recibieron archivos');
+            }
+
+            // Preparar datos para cada archivo
+            const archivosAGuardar = archivos.map(archivo => {
+                // Obtener descripción si existe
+                const descripcionArchivo = descripciones[archivo.originalname] ||
+                    descripciones[archivo.filename] ||
+                    null;
+
+                // Determinar tipo de archivo
+                const tipoArchivo = this.determinarTipoArchivo(archivo.mimetype);
+                // Extraer ruta relativa (desde carpeta-personal)
+                // archivo.path = 'C:/ruta/completa/carpeta-personal/nombre.jpg'
+                // Queremos: 'carpeta-personal/nombre.jpg'
+                const rutaCompleta = archivo.path;
+                const partesRuta = rutaCompleta.split(path.sep); const carpetaIndex = partesRuta.indexOf('carpeta-personal');
+
+                let rutaRelativa;
+                if (carpetaIndex !== -1) {
+                    // Tomar desde carpeta-personal en adelante
+                    rutaRelativa = partesRuta.slice(carpetaIndex).join('/');
+                } else {
+                    // Fallback: usar solo el nombre del archivo
+                    rutaRelativa = archivo.filename;
+                }
+
+                return {
+                    personal_id: parseInt(personalId),
+                    nombre_original: archivo.originalname,
+                    nombre_archivo: archivo.filename,
+                    ruta_relativa: rutaRelativa,
+                    ruta_completa: rutaCompleta,
+                    tipo_archivo: tipoArchivo,
+                    mime_type: archivo.mimetype,
+                    size_bytes: archivo.size,
+                    descripcion: descripcionArchivo
+                };
+            });
+
+
+            // Guardar todos los archivos en la base de datos
+            const idsGuardados = [];
+            for (const archivoData of archivosAGuardar) {
+                const id = await personalModel.agregarArchivo(archivoData, conexion);
+                idsGuardados.push(id);
+            }
+
+            // Obtener los archivos guardados para la respuesta
+            const archivosGuardados = await Promise.all(
+                idsGuardados.map(id =>
+                    personalModel.obtenerArchivoPorId(id, conexion)
+                )
+            );
+            return {
+                success: true,
+                message: `Se registraron ${archivosGuardados.length} archivo(s)`,
+                data: {
+                    archivos: personalModel.formatearArchivos(archivosGuardados),
+                    total: archivosGuardados.length,
+                    personalId: parseInt(personalId)
+                }
+            };
+
+        } catch (error) {
+            console.error('Error registrando archivos:', error);
+
+            // Si hubo error, intentar eliminar los archivos físicos subidos
+            if (archivos && archivos.length > 0) {
+                await this.limpiarArchivosSubidos(archivos);
+            }
+
+            throw error;
+        } finally {
+            if (conexion) conexion.release();
+        }
+
     }
 
     async obtenerPersonalPorTipo(tipo) {
@@ -107,72 +236,239 @@ class personalServicio {
                 throw error;
             }
             throw new Error('Error al obtener el personal');
+        } finally {
+            if (conexion) {
+                await conexion.release();
+            }
         }
     }
 
-    async actualizarPersonal(id, datos, archivos = []) {
+    async actualizarPersonal(id, datosCompletos) {
+        // let conexion;
+        // try {
+        //     if (!id || isNaN(parseInt(id))) {
+        //         throw new Error('ID de personal no válido');
+        //     }
+
+        //     conexion = await personalModel.obtenerConexion()
+
+        //     // Validar cédula única (excluyendo el actual)
+        //     if (datos.cedula) {
+        //         const cedulaExiste = await personalModel.existeCedula(datos.cedula, conexion, id);
+        //         if (cedulaExiste) {
+        //             throw new Error('La cédula ya está registrada por otro personal');
+        //         }
+        //     }
+
+        //     // Preparar datos para actualización
+        //     const datosActualizados = this.validarDatosActualizacion({
+        //         ...datos,
+        //         fecha_nacimiento: datos.fecha_nacimiento
+        //             ? this.formatearFechaParaBD(datos.fecha_nacimiento)
+        //             : undefined,
+        //         fecha_ingreso_mppe: datos.fecha_ingreso_mppe
+        //             ? this.formatearFechaParaBD(datos.fecha_ingreso_mppe)
+        //             : undefined
+        //     });
+
+        //     conexion.beginTransaction()
+        //     // Actualizar datos principales
+        //     const actualizado = await personalModel.actualizarPersonal(id, datosActualizados, conexion);
+
+        //     if (!actualizado) {
+        //         throw new Error('Personal no encontrado');
+        //     }
+
+        //     // Procesar archivos adjuntos
+        //     const archivosProcesados = [];
+        //     if (archivos.length > 0) {
+        //         for (const archivo of archivos) {
+        //             await personalModel.agregarArchivo(id, {
+        //                 nombreArchivo: archivo.filename,
+        //                 rutaArchivo: archivo.path,
+        //                 tipoArchivo: this.determinarTipoArchivo(archivo.mimetype)
+        //             }, conexion);
+        //             archivosProcesados.push(archivo.filename);
+        //         }
+        //     }
+        //     conexion.commit()
+
+        //     const personal = await personalModel.obtenerDatosPersonalPorId(id, conexion)
+
+        //     return {
+        //         id: id,
+        //         data: personal,
+        //         archivosProcesados: archivosProcesados.length,
+        //         nombresArchivos: archivosProcesados
+        //     };
+
+        // }
         let conexion;
         try {
             if (!id || isNaN(parseInt(id))) {
                 throw new Error('ID de personal no válido');
             }
 
-            conexion = await personalModel.obtenerConexion()
+            // Extraer datos
+            const { datosPersonal, archivosNuevos, archivosExistentes, archivosAEliminar } = datosCompletos;
 
-            // Validar cédula única (excluyendo el actual)
-            if (datos.cedula) {
-                const cedulaExiste = await personalModel.existeCedula(datos.cedula, conexion, id);
+            conexion = await personalModel.obtenerConexion();
+            await conexion.beginTransaction();
+
+            // 1. VALIDAR CÉDULA (si se está actualizando)
+            if (datosPersonal.cedula) {
+                const cedulaExiste = await personalModel.existeCedula(datosPersonal.cedula, conexion, id);
                 if (cedulaExiste) {
                     throw new Error('La cédula ya está registrada por otro personal');
                 }
             }
 
-            // Preparar datos para actualización
+            // 2. PREPARAR DATOS PARA ACTUALIZACIÓN
             const datosActualizados = this.validarDatosActualizacion({
-                ...datos,
-                fecha_nacimiento: datos.fecha_nacimiento
-                    ? this.formatearFechaParaBD(datos.fecha_nacimiento)
+                ...datosPersonal,
+                fecha_nacimiento: datosPersonal.fecha_nacimiento
+                    ? this.formatearFechaParaBD(datosPersonal.fecha_nacimiento)
                     : undefined,
-                fecha_ingreso_mppe: datos.fecha_ingreso_mppe
-                    ? this.formatearFechaParaBD(datos.fecha_ingreso_mppe)
+                fecha_ingreso_mppe: datosPersonal.fecha_ingreso_mppe
+                    ? this.formatearFechaParaBD(datosPersonal.fecha_ingreso_mppe)
                     : undefined
             });
+            // console.log("datos actualizados", datosActualizados)
 
-            conexion.beginTransaction()
-            // Actualizar datos principales
+            // 3. ACTUALIZAR DATOS PRINCIPALES DEL PERSONAL
             const actualizado = await personalModel.actualizarPersonal(id, datosActualizados, conexion);
-
             if (!actualizado) {
                 throw new Error('Personal no encontrado');
             }
 
-            // Procesar archivos adjuntos
-            const archivosProcesados = [];
-            if (archivos.length > 0) {
-                for (const archivo of archivos) {
-                    await personalModel.agregarArchivo(id, {
-                        nombreArchivo: archivo.filename,
-                        rutaArchivo: archivo.path,
-                        tipoArchivo: this.determinarTipoArchivo(archivo.mimetype)
-                    }, conexion);
-                    archivosProcesados.push(archivo.filename);
+            // 4. PROCESAR ARCHIVOS NUEVOS
+            const archivosNuevosProcesados = [];
+            if (archivosNuevos.length > 0) {
+                // console.log(`Guardando ${archivosNuevos.length} archivo(s) nuevo(s)...`);
+
+                for (const item of archivosNuevos) {
+                    const { archivo, metadata } = item;
+
+                    // Crear datos para agregar archivo
+                    const archivoData = {
+                        personal_id: id,
+                        nombre_original: archivo.originalname,
+                        nombre_archivo: archivo.filename,
+                        ruta_relativa: archivo.filename, // O la ruta que uses
+                        ruta_completa: archivo.path,
+                        tipo_archivo: metadata.tipo || 'documento',
+                        mime_type: archivo.mimetype,
+                        size_bytes: archivo.size,
+                        descripcion: metadata.descripcion || ''
+                    };
+
+                    const archivoId = await personalModel.agregarArchivo(archivoData, conexion);
+                    archivosNuevosProcesados.push({
+                        id: archivoId,
+                        nombre: archivo.originalname,
+                        tipo: metadata.tipo
+                    });
+
+                    console.log(`✅ Archivo nuevo guardado: ${archivo.originalname} (ID: ${archivoId})`);
                 }
             }
-            conexion.commit()
+
+            // 5. ACTUALIZAR ARCHIVOS EXISTENTES (metadata)
+            const archivosExistentesActualizados = [];
+            if (archivosExistentes.length > 0) {
+                // console.log(` Actualizando ${archivosExistentes.length} archivo(s) existente(s)...`);
+
+                for (const archivoExistente of archivosExistentes) {
+                    await conexion.execute(
+                        `UPDATE personal_archivos 
+                     SET tipo_archivo = ?, descripcion = ?, fecha_subida = NOW()
+                     WHERE id = ? AND personal_id = ?`,
+                        [
+                            archivoExistente.tipo || 'documento',
+                            archivoExistente.descripcion || '',
+                            archivoExistente.id,
+                            id
+                        ]
+                    );
+                    archivosExistentesActualizados.push(archivoExistente.id);
+                    // console.log(` Metadata actualizada para archivo ID: ${archivoExistente.id}`);
+                }
+            }
+
+            // 6. ELIMINAR ARCHIVOS MARCADOS
+            const archivosEliminados = [];
+            if (archivosAEliminar.length > 0) {
+                // console.log(`Eliminando ${archivosAEliminar.length} archivo(s)...`);
+
+                for (const archivoId of archivosAEliminar) {
+                    // Primero obtener información del archivo
+                    const [archivos] = await conexion.execute(
+                        'SELECT * FROM personal_archivos WHERE id = ? AND personal_id = ?',
+                        [archivoId, id]
+                    );
+
+                    if (archivos.length > 0) {
+                        const archivo = archivos[0];
+                        archivo.ruta_archivo = path.join(__dirname, 'carpeta-personal', archivo.ruta_archivo);
+                        // Eliminar archivo físico
+                        if (archivo.ruta_archivo && fs.existsSync(archivo.ruta_archivo)) {
+                            try {
+                                fs.unlinkSync(archivo.ruta_archivo);
+                                console.log(`❌ Archivo físico eliminado: ${archivo.ruta_archivo}`);
+                            } catch (fsError) {
+                                console.error(`⚠️ No se pudo eliminar archivo físico ${archivo.ruta_archivo}:`, fsError);
+                            }
+                        }
+
+                        // Eliminar de la base de datos
+                        await personalModel.eliminarArchivoPorId(archivoId, conexion);
+                        archivosEliminados.push(archivoId);
+                        console.log(`✅ Archivo eliminado de BD: ID ${archivoId}`);
+                    } else {
+                        console.log(`⚠️ Archivo no encontrado: ID ${archivoId}`);
+                    }
+                }
+            }
+
+            // 7. OBTENER DATOS ACTUALIZADOS DEL PERSONAL
+            const personal = await personalModel.obtenerDatosPersonalPorId(id, conexion);
+
+            await conexion.commit();
+            console.log('✅ Transacción completada exitosamente');
+
             return {
                 id: parseInt(id),
-                archivosProcesados: archivosProcesados.length,
-                nombresArchivos: archivosProcesados
+                data: personal,
+                archivosProcesados: {
+                    nuevos: archivosNuevosProcesados.length,
+                    existentes: archivosExistentesActualizados.length,
+                    eliminados: archivosEliminados.length
+                },
+                detalles: {
+                    archivosNuevos: archivosNuevosProcesados,
+                    archivosEliminados: archivosEliminados
+                }
             };
+
         } catch (error) {
-            await conexion.rollback()
-            // Re-lanzar errores de validación
-            if (error.message === 'ID de personal no válido' ||
-                error.message === 'La cédula ya está registrada por otro personal' ||
-                error.message === 'Personal no encontrado') {
+            if (conexion) {
+                await conexion.rollback();
+                console.error(' Transacción revertida:', error);
+            }
+
+            // Re-lanzar errores de validación específicos
+            const erroresConocidos = [
+                'ID de personal no válido',
+                'La cédula ya está registrada por otro personal',
+                'Personal no encontrado'
+            ];
+
+            if (erroresConocidos.includes(error.message)) {
                 throw error;
             }
-            throw new Error('Error al actualizar el personal');
+
+            console.error('Error general en servicio:', error);
+            throw new Error(`Error al actualizar el personal: ${error.message}`);
         } finally {
             if (conexion) {
                 await conexion.release();
@@ -272,6 +568,70 @@ class personalServicio {
         }
     }
 
+    async obtenerPersonalPorIds(ids, options = {}) {
+        let conexion;
+
+        try {
+            conexion = await personalModel.obtenerConexion();
+
+            // Validación básica
+            if (!ids || !Array.isArray(ids)) {
+                throw new Error('Los IDs deben ser proporcionados como un array');
+            }
+
+            if (ids.length === 0) {
+                return [];
+            }
+
+            // Limitar el número máximo de IDs para prevenir ataques
+            const MAX_IDS = 100;
+            if (ids.length > MAX_IDS) {
+                throw new Error(`Máximo ${MAX_IDS} IDs permitidos por consulta`);
+            }
+
+            // Obtener datos según las opciones
+            let personalData;
+
+            personalData = await personalModel.obtenerPersonalBasicoPorIds(ids, conexion);
+            // personalData = await PersonalModel.obtenerPersonalPorIds(ids);
+
+
+            // Verificar si se encontraron todos los IDs solicitados
+            const idsEncontrados = personalData.map(p => p.id);
+            const idsNoEncontrados = ids.filter(id => !idsEncontrados.includes(Number(id)));
+
+            // Preparar respuesta
+            const response = {
+                success: true,
+                data: personalData,
+                metadata: {
+                    totalSolicitado: ids.length,
+                    totalEncontrado: personalData.length,
+                    idsNoEncontrados: idsNoEncontrados.length > 0 ? idsNoEncontrados : undefined
+                }
+            };
+
+            // Advertencia si no se encontraron algunos IDs
+            if (idsNoEncontrados.length > 0) {
+                response.mensaje = `Advertencia: ${idsNoEncontrados.length} ID(s) no encontrado(s)`;
+            }
+
+            return response;
+        } catch (error) {
+            console.error('Error en PersonalService.obtenerPersonalPorIds:', error);
+
+            return {
+                success: false,
+                mensaje: error.message || 'Error al obtener personal por IDs',
+                error: process.env.NODE_ENV === 'development' ? error.stack : undefined
+            };
+        } finally {
+            if (conexion) {
+                await conexion.release();
+            }
+        }
+    }
+
     validarTipoPersonal(tipo) {
         const tiposValidos = ['docente', 'administrativo', 'obrero'];
         return tiposValidos.includes(tipo);
@@ -314,8 +674,23 @@ class personalServicio {
         return date.toISOString().split('T')[0];
     }
 
-    determinarTipoArchivo(mimetype) {
-        return mimetype.startsWith('image/') ? 'imagen' : 'pdf';
+    determinarTipoArchivo(mimeType) {
+        if (!mimeType) return 'otro';
+
+        if (mimeType.startsWith('image/')) {
+            return 'imagen';
+        } else if (mimeType === 'application/pdf') {
+            return 'pdf';
+        } else if (
+            mimeType.includes('document') ||
+            mimeType.includes('word') ||
+            mimeType.includes('excel') ||
+            mimeType.includes('powerpoint')
+        ) {
+            return 'documento';
+        } else {
+            return 'otro';
+        }
     }
 
     async validarCedulaUnica(cedula, conexion) {
@@ -328,6 +703,19 @@ class personalServicio {
                 if (fs.existsSync(archivo.path)) {
                     fs.unlinkSync(archivo.path);
                 }
+            });
+        }
+    }
+
+    async limpiarArchivosSubidos(archivosMulter) {
+        for (const archivo of archivosMulter) {
+            if (!archivo?.path) continue;
+
+            // Normalizar usando path
+            const rutaNormalizada = path.normalize(archivo.path);
+
+            await fs.unlink(rutaNormalizada).catch(error => {
+                console.error(`Error eliminando ${archivo.filename}:`, error.message);
             });
         }
     }

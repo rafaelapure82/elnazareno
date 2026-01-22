@@ -40,7 +40,8 @@ export const usePersonal = (tipo) => {
     const obtenerPersonalPorId = useCallback(async (id) => {
         try {
             const response = await PersonalServicio.obtenerPersonalPorId(id);
-            return PersonalAdaptador.fromApiResponse(response);
+            return PersonalAdaptador.fromApiResponse(response.data);
+
         } catch (err) {
             throw new Error(err.message || 'Error al obtener personal');
         }
@@ -87,7 +88,7 @@ export const usePersonal = (tipo) => {
     const actualizarPersonal = useCallback(async (id, data) => {
         try {
             const response = await PersonalServicio.actualizarPersonal(id, data);
-            const personalActualizado = PersonalAdaptador.fromApiResponse(response);
+            const personalActualizado = PersonalAdaptador.fromApiResponse(response.data);
 
             // Actualizar en la lista local si es del mismo tipo
             if (personalActualizado.tipo === tipo) {

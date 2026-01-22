@@ -18,10 +18,9 @@ const corsOptions = {
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 };
 
-//*Servir Carpeta
-const rutaImagenes = path.join(__dirname, 'modulos', 'actividades', 'carpeta-actividades');
-app.use('/api/carpeta-actividades', express.static(rutaImagenes));
-
+//*Servir Carpetas
+app.use("/api/carpeta-actividades", express.static(path.join(__dirname, 'modulos', 'actividades', 'carpeta-actividades')));
+app.use("/api/carpeta-personal", express.static(path.join(__dirname, 'modulos', 'personal', 'carpeta-personal')))
 
 
 //*middlewares 

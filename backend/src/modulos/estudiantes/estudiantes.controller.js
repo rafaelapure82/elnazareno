@@ -106,7 +106,6 @@ class estudiantesController {
 
     async obtenerTodosEstudiantes(req, res) {
         try {
-            console.log("aquiii obtener estudiantes, 109linea")
             const { page = 1, limit = 10, search, sortBy = 'apellidos', sortOrder = 'asc', exportAll } = req.query;
 
             const resultado = await estudianteServicio.obtenerTodosEstudiantesBD({

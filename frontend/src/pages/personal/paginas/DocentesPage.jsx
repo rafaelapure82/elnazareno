@@ -1,4 +1,3 @@
-// src/modules/personal/components/DocentesPage.jsx
 import React, { useState } from 'react';
 import { FaChalkboardTeacher, FaExclamationTriangle, FaSpinner } from 'react-icons/fa';
 import { usePersonal } from '../hooks/usePersonal';
@@ -7,6 +6,9 @@ import PersonalLista from '../componentes/PersonalLista';
 import PersonalBuscar from '../componentes/PersonalBuscar';
 import PersonalAccion from '../componentes/PersonalAccion';
 import PersonalDetalleModal from '../componentes/PersonalDetalleModal';
+import Swal from 'sweetalert2'
+import { ExportacionService } from '../servicios/exportacion.service';
+
 
 const DocentesPage = () => {
     const [showFormModal, setShowFormModal] = useState(false);
@@ -14,6 +16,8 @@ const DocentesPage = () => {
     const [showDetailModal, setShowDetailModal] = useState(false);
     const [selectedIds, setSelectedIds] = useState([]);
     const [editingPersonal, setEditingPersonal] = useState(null);
+    const [loadingDetail, setLoadingDetail] = useState(false);
+    const [detailError, setDetailError] = useState(null);
 
     const tipo = 'docente';
 
@@ -26,8 +30,133 @@ const DocentesPage = () => {
         registrarPersonal,
         actualizarPersonal,
         eliminarPersonal,
+        obtenerPersonalPorId,
         actualizarFiltros
     } = usePersonal(tipo);
+
+    const getDatosParaExportar = () => {
+        if (selectedIds.length > 0) {
+            return personal.filter(p => selectedIds.includes(p.id));
+        }
+        return personal;
+    };
+
+    const handleExportPDF = async () => {
+        try {
+            // SOLO obtener datos completos si hay selección
+            let datosParaExportar;
+
+            if (selectedIds.length > 0) {
+                // console.log('Exportando PDF con selección:', selectedIds.length, 'IDs');
+                datosParaExportar = await ExportacionService.obtenerDatosCompletos(personal, selectedIds);
+            } else {
+                // console.log('Exportando PDF sin selección - usando datos de lista');
+                datosParaExportar = personal; // Usar datos de la lista actual
+            }
+
+            if (!datosParaExportar || datosParaExportar.length === 0) {
+                Swal.fire('Información', 'No hay datos para exportar', 'info');
+                return;
+            }
+
+            // console.log('Datos para PDF:', datosParaExportar.length, 'registros');
+
+            // Verificar que los datos tienen campos completos
+            // const primerRegistro = datosParaExportar[0];
+            // console.log('Campos en primer registro PDF:', Object.keys(primerRegistro));
+            // console.log('Ejemplo de datos completos:', {
+            //     tieneTitulos: !!primerRegistro.titulos_profesionales,
+            //     tieneTallas: !!(primerRegistro.talla_franela || primerRegistro.talla_pantalon || primerRegistro.talla_zapato),
+            //     tieneCodigos: !!(primerRegistro.codigo_cargo || primerRegistro.codigo_dependencia)
+            // });
+
+            await ExportacionService.exportarAPDF(datosParaExportar, tipo);
+
+            Swal.fire('Éxito', `PDF generado con ${datosParaExportar.length} registros completos`, 'success');
+
+        } catch (error) {
+            console.error('Error exportando PDF:', error);
+            Swal.fire('Error', `No se pudo generar el PDF: ${error.message}`, 'error');
+            throw error;
+        }
+    };
+
+    const handleExportExcel = async () => {
+        try {
+            // SOLO obtener datos completos si hay selección
+            let datosParaExportar;
+
+            if (selectedIds.length > 0) {
+                // console.log('Exportando Excel con selección:', selectedIds.length, 'IDs');
+                datosParaExportar = await ExportacionService.obtenerDatosCompletos(personal, selectedIds);
+            } else {
+                // console.log('Exportando Excel sin selección - usando datos de lista');
+                datosParaExportar = personal; // Usar datos de la lista actual
+            }
+
+            if (!datosParaExportar || datosParaExportar.length === 0) {
+                Swal.fire('Información', 'No hay datos para exportar', 'info');
+                return;
+            }
+
+            // console.log('Datos para Excel:', datosParaExportar.length, 'registros');
+
+            await ExportacionService.exportarAExcel(datosParaExportar, tipo);
+
+            Swal.fire('Éxito', `Excel generado con ${datosParaExportar.length} registros completos`, 'success');
+
+        } catch (error) {
+            console.error('Error exportando Excel:', error);
+            Swal.fire('Error', `No se pudo generar el Excel: ${error.message}`, 'error');
+            throw error;
+        }
+    };
+
+    // FUNCIÓN para exportar a CSV
+    const handleExportCSV = async () => {
+        try {
+            // Obtener datos COMPLETOS desde el endpoint
+            const datos = await ExportacionService.obtenerDatosCompletos(personal, selectedIds);
+
+            if (datos.length === 0) {
+                Swal.fire('Información', 'No hay datos para exportar', 'info');
+                return;
+            }
+
+            await ExportacionService.exportarACSV(datos, tipo);
+
+            Swal.fire('Éxito', `CSV generado con ${datos.length} registros`, 'success');
+
+        } catch (error) {
+            console.error('Error exportando CSV:', error);
+            Swal.fire('Error', `No se pudo generar el CSV: ${error.message}`, 'error');
+            throw error;
+        }
+    };
+
+    // FUNCIÓN para imprimir
+    const handlePrint = async () => {
+        try {
+            // Obtener datos COMPLETOS desde el endpoint
+            const datos = await ExportacionService.obtenerDatosCompletos(personal, selectedIds);
+
+            if (datos.length === 0) {
+                Swal.fire('Información', 'No hay datos para imprimir', 'info');
+                return;
+            }
+
+            await ExportacionService.imprimir(datos, tipo);
+
+        } catch (error) {
+            console.error('Error imprimiendo:', error);
+            Swal.fire('Error', `No se pudo abrir la vista de impresión: ${error.message}`, 'error');
+            throw error;
+        }
+    };
+
+
+
+    //!Funciones para Editar
 
     const handleCreate = async (data) => {
         try {
@@ -49,14 +178,36 @@ const DocentesPage = () => {
     };
 
     const handleDelete = async (id) => {
-        if (window.confirm('¿Estás seguro de eliminar este docente?')) {
-            try {
-                await eliminarPersonal(id);
-                setSelectedIds(prev => prev.filter(selectedId => selectedId !== id));
-            } catch (error) {
-                alert(error.message);
+        Swal.fire({
+            title: `¿Estás seguro de eliminar este ${tipo}?`,
+            text: "¡No podrás revertir esto!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            cancelButtonText: "Cancelar",
+            confirmButtonText: "Si, eliminar!"
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    await eliminarPersonal(id);
+                    setSelectedIds(prev => prev.filter(selectedId => selectedId !== id));
+                    Swal.fire({
+                        title: "Eliminado!",
+                        text: `El ${tipo} ha sido eliminado`,
+                        icon: "success"
+                    });
+                } catch (error) {
+                    Swal.fire({
+                        title: "Error",
+                        text: `Error:${error.message}`,
+                        icon: "error"
+                    });
+
+                }
             }
-        }
+        });
+
     };
 
     const handleDeleteSelected = async () => {
@@ -65,16 +216,38 @@ const DocentesPage = () => {
             return;
         }
 
-        if (window.confirm(`¿Estás seguro de eliminar ${selectedIds.length} docente(s)?`)) {
-            try {
-                for (const id of selectedIds) {
-                    await eliminarPersonal(id);
+        Swal.fire({
+            title: `¿Estás seguro de eliminar ${selectedIds.length} ${tipo}(s)?`,
+            text: "¡No podrás revertir esto!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            cancelButtonText: "Cancelar",
+            confirmButtonText: "Si, eliminar!"
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    for (const id of selectedIds) {
+                        await eliminarPersonal(id);
+                    }
+                    setSelectedIds([]);
+                    Swal.fire({
+                        title: "Eliminado!",
+                        text: `El ${tipo} ha sido eliminado`,
+                        icon: "success"
+                    });
+                } catch (error) {
+                    Swal.fire({
+                        title: "Error",
+                        text: `Error:${error.message}`,
+                        icon: "error"
+                    });
+
                 }
-                setSelectedIds([]);
-            } catch (error) {
-                alert(error.message);
             }
-        }
+        });
+
     };
 
     const handleSelectPersonal = (id) => {
@@ -87,13 +260,31 @@ const DocentesPage = () => {
         });
     };
 
-    const handleViewPersonal = (personal) => {
-        setSelectedPersonal(personal);
+    const handleViewPersonal = async (personal) => {
+        setLoadingDetail(true);
+        setDetailError(null);
         setShowDetailModal(true);
+
+        try {
+            // Cargar datos completos desde la API
+            const personalCompleto = await obtenerPersonalPorId(personal.id);
+            setSelectedPersonal(personalCompleto);
+        } catch (error) {
+            console.error('Error cargando detalles:', error);
+            setDetailError(error.message);
+            // Si falla, al menos mostrar los datos básicos
+            setSelectedPersonal(personal);
+        } finally {
+            setLoadingDetail(false);
+        }
     };
 
+
     const handleEditPersonal = (personal) => {
-        setEditingPersonal(personal);
+        setEditingPersonal({
+            id: personal.id,
+            tipo: personal.tipo
+        });
         setShowFormModal(true);
     };
 
@@ -124,6 +315,13 @@ const DocentesPage = () => {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+    };
+
+    // Función para cerrar el modal
+    const handleCloseDetailModal = () => {
+        setShowDetailModal(false);
+        setSelectedPersonal(null);
+        setDetailError(null);
     };
 
     if (error) {
@@ -220,13 +418,18 @@ const DocentesPage = () => {
 
                 {/* Acciones */}
                 <PersonalAccion
+                    personal={personal}
                     tipo={tipo}
+                    selectedIds={selectedIds}
                     onAddClick={() => {
                         setEditingPersonal(null);
                         setShowFormModal(true);
                     }}
                     onDeleteSelected={handleDeleteSelected}
-                    onExport={handleExport}
+                    onExportPDF={handleExportPDF}
+                    onExportExcel={handleExportExcel}
+                    onExportCSV={handleExportCSV}
+                    onPrint={handlePrint}
                     selectedCount={selectedIds.length}
                     totalCount={personal.length}
                 />
@@ -267,8 +470,10 @@ const DocentesPage = () => {
                 <PersonalDetalleModal
                     personal={selectedPersonal}
                     isOpen={showDetailModal}
-                    onClose={() => setShowDetailModal(false)}
+                    onClose={handleCloseDetailModal}
                     tipo={tipo}
+                    loading={loadingDetail}
+                    error={detailError}
                 />
             </div>
         </div>
