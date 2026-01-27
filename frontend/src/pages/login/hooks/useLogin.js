@@ -96,7 +96,7 @@ export const useLogin = () => {
             }
 
             // 6. Redirigir al dashboard
-            navigate('/dashboard', { replace: true });
+            navigate('/inicio', { replace: true });
 
         } catch (error) {
             // Manejo de errores específicos de la API

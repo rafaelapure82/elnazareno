@@ -2,13 +2,47 @@ const usuariosModel = require("./usuarios.model")
 const bcrypt = require('bcrypt');
 
 class usuariosServicio {
-    async obtenerUsuarios() {
+    // async obtenerUsuarios() {
+    //     try {
+    //         return await usuariosModel.obtenerTodosUsuarios();
+    //     } catch (error) {
+    //         throw new Error('Error al obtener usuarios desde el servicio');
+    //     }
+    // }
+
+    async obtenerUsuarios(filtros = {}, pagina = 1, limite = 10) {
         try {
-            return await usuariosModel.obtenerTodosUsuarios();
+
+            // console.log('Filtros recibidos en servicio:', filtros);
+            // console.log('Página:', pagina, 'Límite:', limite);
+
+            // Primero probar sin paginación
+            const usuarios = await usuariosModel.buscarUsuariosSimple(filtros);
+
+            // Contar total
+            const total = usuarios.length;
+
+            // Aplicar paginación manualmente si es necesario
+            const offset = (pagina - 1) * limite;
+            const usuariosPaginados = usuarios.slice(offset, offset + limite);
+
+            const totalPaginas = Math.ceil(total / limite);
+
+            return {
+                usuarios: usuariosPaginados,
+                total,
+                pagina,
+                limite,
+                totalPaginas
+            };
+
+
         } catch (error) {
-            throw new Error('Error al obtener usuarios desde el servicio');
+            console.error('Error en servicio obtenerUsuarios:', error);
+            throw error;
         }
-    }
+    };
+
 
     async obtenerUsuarioPorId(id) {
         try {
@@ -58,7 +92,8 @@ class usuariosServicio {
             if (!resultado) {
                 throw new Error('No se pudo actualizar el usuario');
             }
-
+            const usuario = await usuariosModel.obtenerUsuarioPorId(id)
+            return usuario;
         } catch (error) {
             throw error;
         }

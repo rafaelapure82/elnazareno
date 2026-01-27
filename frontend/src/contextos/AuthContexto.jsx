@@ -151,7 +151,7 @@ export const AuthProvider = ({ children }) => {
         if (!authState.user?.roles) return false;
         return authState.user.roles.includes(role);
     }, [authState.user]);
-
+    console.log("aaaa", authState)
     return (
         <AuthContexto.Provider
             value={{

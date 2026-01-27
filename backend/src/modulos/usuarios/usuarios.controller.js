@@ -3,7 +3,23 @@ const usuariosServicio = require("./usuarios.servicio")
 class usuariosController {
     async obtenerUsuarios(req, res) {
         try {
-            const usuarios = await usuariosServicio.obtenerUsuarios();
+            const { search, page = 1, limit = 10, rol } = req.query;
+
+            // Convertir a números
+            const pagina = parseInt(page);
+            const limite = parseInt(limit);
+
+            // Construir filtros
+            const filtros = {};
+            if (search) {
+                filtros.search = search;
+            }
+            if (rol) {
+                filtros.rol = rol;
+            }
+
+
+            const usuarios = await usuariosServicio.obtenerUsuarios(filtros, pagina, limite);
             res.json({
                 success: true,
                 data: usuarios,
@@ -69,9 +85,10 @@ class usuariosController {
         try {
             const { id } = req.params;
             const { nombre, usuario, correo, rol } = req.body;
-            await usuariosServicio.actualizarUsuario(id, { nombre, usuario, correo, rol });
+            const resultado = await usuariosServicio.actualizarUsuario(id, { nombre, usuario, correo, rol });
             res.status(200).json({
                 success: true,
+                resultado,
                 message: 'Usuario actualizado exitosamente'
             });
         } catch (error) {

@@ -1,4 +1,4 @@
-// src/routes/AppRouter.jsx
+
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { LoginForm } from '../pages/login/';
 import ProtectedRouter from './ProtectedRouter';
@@ -23,6 +23,9 @@ import SeccionesPage from '../pages/secciones/paginas/SeccionesPage'
 import SeccionDetallePage from '../pages/secciones/paginas/SeccionDetallePage'
 import EditarSeccionPage from '../pages/secciones/paginas/EditarSeccionPage';
 import EstadisticasPage from '../pages/secciones/paginas/EstadisticasPage';
+
+import UsuariosModulo from '../pages/usuarios/index';
+
 const AppRouter = () => {
     return (
         <BrowserRouter>
@@ -61,7 +64,7 @@ const AppRouter = () => {
                         <Route path="obreros" element={<ObrerosPage />} />
                     </Route>
                     <Route path="/configuracion" element={<ConfiguracionPage />} />
-                    {/* // <Route path="/secciones/*" element={<SeccionesModule />} /> */}
+                    // <Route path="/usuarios" element={<UsuariosModulo />} />
 
 
 
