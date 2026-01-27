@@ -105,6 +105,18 @@ class usuariosServicio {
 
     // Actualización de usuario normal (sin rol)
 
+    async obtenerUsuarioNormalPorId(id) {
+        try {
+            const usuario = await usuariosModel.obtenerUsuarioNormalPorId(id);
+            if (!usuario) {
+                throw new Error('Usuario no encontrado');
+            }
+            return usuario;
+        } catch (error) {
+            throw error;;
+        }
+    }
+
     async actualizarUsuarioNormal(id, usuarioData) {
         try {
             await this.validarActualizacionUsuario(id, usuarioData);

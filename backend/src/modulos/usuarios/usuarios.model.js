@@ -19,6 +19,14 @@ class usuariosModel {
         return rows[0];
     }
 
+    async obtenerUsuarioNormalPorId(id) {
+        const [rows] = await pool.query(
+            'SELECT id, nombre, usuario, correo FROM usuarios WHERE id = ?',
+            [id]
+        );
+        return rows[0];
+    }
+
     async crearUsuario(usuarioData) {
         const { nombre, usuario, correo, rol, password } = usuarioData;
         const [resultado] = await pool.query(

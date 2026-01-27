@@ -14,8 +14,15 @@ import {
     AdministrativosPage,
     ObrerosPage
 } from '../pages/personal';
-
-
+import ConfiguracionPage from '../pages/configuracion/paginas/ConfiguracionPage';
+// import { SeccionesPage } from '../pages/secciones/'
+// import SeccionesModule from '../pages/secciones';
+import SeccionesLayout from '../pages/secciones/componentes/Layout/SeccionesLayout';
+import GradosPage from '../pages/secciones/paginas/GradosPage'
+import SeccionesPage from '../pages/secciones/paginas/SeccionesPage'
+import SeccionDetallePage from '../pages/secciones/paginas/SeccionDetallePage'
+import EditarSeccionPage from '../pages/secciones/paginas/EditarSeccionPage';
+import EstadisticasPage from '../pages/secciones/paginas/EstadisticasPage';
 const AppRouter = () => {
     return (
         <BrowserRouter>
@@ -31,6 +38,17 @@ const AppRouter = () => {
                         <LayoutConSidebar />
                     </ProtectedRouter>
                 }>
+
+                    <Route path="/secciones" element={<SeccionesLayout />}>
+                        <Route index element={<GradosPage />} />
+                        <Route path="grados" element={<GradosPage />} />
+                        <Route path="grados/:gradoId/secciones" element={<SeccionesPage />} />
+                        <Route path="detalle/:id" element={<SeccionDetallePage />} />
+                        <Route path="editar/:id" element={<EditarSeccionPage />} />
+                        <Route path="estadisticas" element={<EstadisticasPage />} />
+                    </Route>
+
+
                     {/* Dashboard - Acceso básico autenticado */}
                     <Route path="/dashboard" element={<DashboardPage />} />
                     <Route path="/inicio" element={<InicioPagina />} />
@@ -42,6 +60,10 @@ const AppRouter = () => {
                         <Route path="administrativos" element={<AdministrativosPage />} />
                         <Route path="obreros" element={<ObrerosPage />} />
                     </Route>
+                    <Route path="/configuracion" element={<ConfiguracionPage />} />
+                    {/* // <Route path="/secciones/*" element={<SeccionesModule />} /> */}
+
+
 
                     {/* Perfil - Acceso básico autenticado
                     <Route path="/profile" element={<ProfilePage />} />

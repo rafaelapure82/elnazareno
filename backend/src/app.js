@@ -52,6 +52,5 @@ app.listen(puerto, () => {
 })
 
 //*Middleware para las rutas no existentes
-
 app.use(noEncontrado);
 app.use(manejarError);

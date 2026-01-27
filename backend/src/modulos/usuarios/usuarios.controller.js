@@ -112,6 +112,29 @@ class usuariosController {
 
     //Rutas para usuarios normales
 
+    async obtenerUsuarioNormalPorId(req, res) {
+        try {
+            const { id } = req.params;
+            const usuario = await usuariosServicio.obtenerUsuarioNormalPorId(id);
+            res.status(200).json({
+                success: true,
+                data: usuario
+            });
+
+        } catch (error) {
+            if (error.message === 'Usuario no encontrado') {
+                return res.status(404).json({
+                    success: false,
+                    message: error.message
+                });
+            }
+            res.status(500).json({
+                success: false,
+                message: error.message || 'Error al obtener usuario'
+            });
+        }
+
+    }
 
     async actualizarUsuarioNormal(req, res) {
         try {

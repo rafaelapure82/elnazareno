@@ -1,219 +1,3 @@
-// // components/Sidebar.jsx - VERSIÓN SIMPLIFICADA
-// import { NavLink } from "react-router-dom";
-// import { useAuth } from "../../contextos/AuthContexto";
-// // import MostarInfoAdmin from "../components/MostarInfoAdmin";
-
-// export function Sidebar({ sidebarOpen, setSidebarOpen }) {
-//     const { logout, user } = useAuth();
-
-//     const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
-
-//     const handleLogout = () => {
-//         if (window.confirm("¿Estás seguro de cerrar sesión?")) {
-//             logout();
-//         }
-//     };
-
-//     // Menú items
-//     const menuItems = [
-//         // Admin items (condicionales)
-//         { label: "Registrar Usuarios", to: "/registrar", admin: true },
-//         { label: "Editar Usuarios", to: "/editar-usuario", admin: true },
-
-//         // Items principales
-//         { label: "Inicio", to: "/inicio" },
-//         { label: "Estudiantes", to: "/estudiantes" },
-//         { label: "Administrativo", to: "/administrativos" },
-//         { label: "Docentes", to: "/docentes" },
-//         { label: "Obreros", to: "/obreros" },
-//         { label: "Secciones", to: "/secciones" },
-//         { label: "Reportes", to: "/reportes" },
-//         { label: "Actividades", to: "/actividades" },
-//         { label: "Configuración", to: "/configuracion" },
-//     ];
-
-//     // Función para renderizar los items del menú
-//     const renderMenuItems = (isMobile = false) => (
-//         <div className={`py-4 ${isMobile ? "px-2" : "px-2"}`}>
-//             {/* Items Admin */}
-//             {/* <MostarInfoAdmin>
-//                 {menuItems
-//                     .filter(item => item.admin)
-//                     .map(({ label, to }) => (
-//                         <NavLink
-//                             key={label}
-//                             to={to}
-//                             className={({ isActive }) => `
-//                 block px-4 py-3 my-1 rounded-lg
-//                 transition-all duration-200
-//                 ${isActive
-//                                     ? "bg-purple-600 text-white"
-//                                     : "text-gray-300 hover:bg-gray-700"
-//                                 }
-//               `}
-//                             onClick={() => isMobile && setSidebarOpen(false)}
-//                         >
-//                             {label}
-//                         </NavLink>
-//                     ))}
-//                 <div className="border-t border-gray-700 my-3"></div>
-//             </MostarInfoAdmin> */}
-
-//             {/* Items principales */}
-//             {menuItems
-//                 .filter(item => !item.admin && item.to !== "/configuracion")
-//                 .map(({ label, to }) => (
-//                     <NavLink
-//                         key={label}
-//                         to={to}
-//                         end
-//                         className={({ isActive }) => `
-//               block px-4 py-3 my-1 rounded-lg
-//               transition-all duration-200
-//               ${isActive
-//                                 ? "bg-blue-600 text-white"
-//                                 : "text-gray-300 hover:bg-gray-700"
-//                             }
-//             `}
-//                         onClick={() => isMobile && setSidebarOpen(false)}
-//                     >
-//                         {label}
-//                     </NavLink>
-//                 ))}
-
-//             <div className="border-t border-gray-700 my-3"></div>
-
-//             {/* Configuración */}
-//             <NavLink
-//                 to="/configuracion"
-//                 className={({ isActive }) => `
-//           block px-4 py-3 my-1 rounded-lg
-//           transition-all duration-200
-//           ${isActive
-//                         ? "bg-gray-700 text-white"
-//                         : "text-gray-300 hover:bg-gray-700"
-//                     }
-//         `}
-//                 onClick={() => isMobile && setSidebarOpen(false)}
-//             >
-//                 Configuración
-//             </NavLink>
-
-//             {/* Logout */}
-//             <button
-//                 onClick={() => {
-//                     handleLogout();
-//                     isMobile && setSidebarOpen(false);
-//                 }}
-//                 className="w-full text-left px-4 py-3 my-1 rounded-lg text-red-400 hover:bg-red-900/20 transition-all duration-200"
-//             >
-//                 Salir
-//             </button>
-//         </div>
-//     );
-
-//     return (
-//         <>
-//             {/* Desktop Sidebar */}
-//             <aside className={`
-//         hidden md:flex md:flex-col md:fixed md:inset-y-0
-//         bg-gray-800 text-white z-30
-//         transition-all duration-300
-//         ${sidebarOpen ? "w-64" : "w-16"}
-//         h-screen
-//       `}>
-//                 {/* Header */}
-//                 <div className="p-4 border-b border-gray-700">
-//                     <div className="flex items-center justify-between">
-//                         <div className="flex items-center gap-3">
-//                             <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
-//                                 <span className="font-bold">
-//                                     {user?.nombre?.charAt(0) || "U"}
-//                                 </span>
-//                             </div>
-//                             {sidebarOpen && (
-//                                 <div>
-//                                     <p className="font-semibold">{user?.nombre || "Usuario"}</p>
-//                                     <p className="text-sm text-gray-400">Administrador</p>
-//                                 </div>
-//                             )}
-//                         </div>
-
-//                         <button
-//                             onClick={toggleSidebar}
-//                             className="p-1 hover:bg-gray-700 rounded"
-//                             title={sidebarOpen ? "Colapsar" : "Expandir"}
-//                         >
-//                             {sidebarOpen ? "‹" : "›"}
-//                         </button>
-//                     </div>
-//                 </div>
-
-//                 {/* Menu Desktop */}
-//                 <div className="flex-1 overflow-y-auto">
-//                     {renderMenuItems()}
-//                 </div>
-
-//                 {sidebarOpen && (
-//                     <div className="p-4 text-center text-sm text-gray-400 border-t border-gray-700">
-//                         Sistema Escolar
-//                     </div>
-//                 )}
-//             </aside>
-
-//             {/* Mobile Sidebar */}
-//             <div className={`
-//         md:hidden fixed inset-0 z-40
-//         ${sidebarOpen ? "block" : "hidden"}
-//       `}>
-//                 {/* Overlay */}
-//                 {sidebarOpen && (
-//                     <div
-//                         className="absolute inset-0 bg-black bg-opacity-50"
-//                         onClick={() => setSidebarOpen(false)}
-//                     />
-//                 )}
-
-//                 {/* Sidebar Content */}
-//                 <div className={`
-//           absolute left-0 top-0 h-full w-64
-//           bg-gray-800 text-white
-//           transform transition-transform duration-300
-//           ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
-//         `}>
-//                     {/* Mobile Header */}
-//                     <div className="flex items-center justify-between p-4 border-b border-gray-700">
-//                         <div className="flex items-center gap-3">
-//                             <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
-//                                 <span className="font-bold">
-//                                     {user?.nombre?.charAt(0) || "U"}
-//                                 </span>
-//                             </div>
-//                             <div>
-//                                 <p className="font-semibold">{user?.nombre || "Usuario"}</p>
-//                                 <p className="text-sm text-gray-400">Administrador</p>
-//                             </div>
-//                         </div>
-
-//                         <button
-//                             onClick={() => setSidebarOpen(false)}
-//                             className="p-2 hover:bg-gray-700 rounded"
-//                         >
-//                             ✕
-//                         </button>
-//                     </div>
-
-//                     {/* Mobile Menu */}
-//                     <div className="h-[calc(100vh-80px)] overflow-y-auto">
-//                         {renderMenuItems(true)}
-//                     </div>
-//                 </div>
-//             </div>
-//         </>
-//     );
-// }
-
-
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../../contextos/AuthContexto";
 // import MostarInfoAdmin from "../components/MostarInfoAdmin";
@@ -236,7 +20,6 @@ import { IoIosArrowBack } from "react-icons/io";
 import Swal from "sweetalert2";
 export function Sidebar({ sidebarOpen, setSidebarOpen }) {
     const { logout, user } = useAuth();
-
     const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
     const handleLogout = () => {
@@ -554,16 +337,16 @@ export function Sidebar({ sidebarOpen, setSidebarOpen }) {
                 bg-blue-600 rounded-full flex items-center justify-center
               `}>
                                 <span className="font-bold">
-                                    {user?.nombre?.charAt(0) || "U"}
+                                    {user?.name?.charAt(0) || "U"}
                                 </span>
                             </div>
                             {sidebarOpen && (
                                 <div className="min-w-0">
                                     <p className="font-semibold text-sm truncate">
-                                        {user?.nombre || "Usuario"}
+                                        {user?.name || "Usuario"}
                                     </p>
                                     <p className="text-xs text-gray-400 truncate">
-                                        Administrador
+                                        {user?.roles || "Usuario"}
                                     </p>
                                 </div>
                             )}
@@ -636,7 +419,7 @@ export function Sidebar({ sidebarOpen, setSidebarOpen }) {
 
                         <button
                             onClick={() => setSidebarOpen(false)}
-                            className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
+                            className="p-2 hover:bg-gray-700 rounded-lg transition-colors cursor-pointer"
                         >
                             <span className="text-xl">×</span>
                         </button>
