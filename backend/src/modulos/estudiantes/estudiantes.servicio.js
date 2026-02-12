@@ -986,10 +986,53 @@ class estudianteServicio {
             if (conexion) conexion.release();
         }
     }
+    //!Vieja
+    // async obtenerTodosEstudiantesBD(filters) {
+    //     try {
+    //         const { page = 1, limit = 50, search, sortBy = 'apellidos', sortOrder = 'asc', exportAll, genero, nacionalidad, estado } = filters;
+
+    //         const result = await estudiantesModel.obtenerTodosEstudiantes({
+    //             page,
+    //             limit,
+    //             search,
+    //             sortBy,
+    //             sortOrder,
+    //             exportAll,
+    //             genero,
+    //             nacionalidad,
+    //             estado
+    //         });
+
+    //         if (exportAll) {
+    //             return result.students;
+    //         }
+
+    //         return {
+    //             data: result.students,
+    //             total: result.total
+    //         };
+    //     } catch (error) {
+    //         throw new Error(`Error en servicio de estudiantes: ${error.message}`);
+    //     }
+    // }
 
     async obtenerTodosEstudiantesBD(filters) {
         try {
-            const { page = 1, limit = 50, search, sortBy = 'apellidos', sortOrder = 'asc', exportAll, genero, nacionalidad, estado } = filters;
+            const {
+                page = 1,
+                limit = 50,
+                search,
+                sortBy = 'apellidos',
+                sortOrder = 'asc',
+                exportAll,
+                genero,
+                nacionalidad,
+                estado,
+                tipoSangre,
+                tieneCedula,
+                fechaDesde,
+                fechaHasta
+            } = filters;
 
             const result = await estudiantesModel.obtenerTodosEstudiantes({
                 page,
@@ -1000,7 +1043,11 @@ class estudianteServicio {
                 exportAll,
                 genero,
                 nacionalidad,
-                estado
+                estado,
+                tipoSangre,
+                tieneCedula,
+                fechaDesde,
+                fechaHasta
             });
 
             if (exportAll) {

@@ -680,6 +680,70 @@ class estudiantesController {
         }
     }
 
+    //!Vieja
+    // async obtenerTodosEstudiantes(req, res) {
+    //     try {
+    //         const {
+    //             page = 1,
+    //             limit = 50,
+    //             search,
+    //             sortBy = 'apellidos',
+    //             sortOrder = 'asc',
+    //             exportAll,
+    //             genero,
+    //             nacionalidad,
+    //             estado
+    //         } = req.query;
+
+    //         const resultado = await estudianteServicio.obtenerTodosEstudiantesBD({
+    //             page: parseInt(page),
+    //             limit: parseInt(limit),
+    //             search,
+    //             sortBy,
+    //             sortOrder,
+    //             exportAll: exportAll === 'true',
+    //             genero,
+    //             nacionalidad,
+    //             estado
+    //         });
+
+    //         if (exportAll === 'true') {
+    //             return res.status(200).json({
+    //                 success: true,
+    //                 message: 'Estudiantes exportados exitosamente',
+    //                 data: resultado,
+    //                 total: resultado.length
+    //             });
+    //         }
+
+    //         const total = resultado.total || 0;
+    //         const currentPage = parseInt(page);
+    //         const currentLimit = parseInt(limit);
+    //         const totalPages = Math.ceil(total / currentLimit);
+
+    //         res.status(200).json({
+    //             success: true,
+    //             message: 'Estudiantes obtenidos exitosamente',
+    //             data: resultado.data || resultado.students || [],
+    //             pagination: {
+    //                 total: total,
+    //                 page: currentPage,
+    //                 limit: currentLimit,
+    //                 totalPages: totalPages,
+    //                 hasNextPage: currentPage < totalPages,
+    //                 hasPrevPage: currentPage > 1
+    //             }
+    //         });
+    //     } catch (error) {
+    //         console.error('Error en obtenerTodosEstudiantes:', error);
+    //         res.status(500).json({
+    //             success: false,
+    //             message: 'Error al obtener los estudiantes',
+    //             error: error.message
+    //         });
+    //     }
+    // }
+
     async obtenerTodosEstudiantes(req, res) {
         try {
             const {
@@ -691,7 +755,11 @@ class estudiantesController {
                 exportAll,
                 genero,
                 nacionalidad,
-                estado
+                estado,
+                tipoSangre,
+                tieneCedula,
+                fecha_nacimiento_desde,
+                fecha_nacimiento_hasta
             } = req.query;
 
             const resultado = await estudianteServicio.obtenerTodosEstudiantesBD({
@@ -703,7 +771,11 @@ class estudiantesController {
                 exportAll: exportAll === 'true',
                 genero,
                 nacionalidad,
-                estado
+                estado,
+                tipoSangre,
+                tieneCedula,
+                fechaDesde: fecha_nacimiento_desde,
+                fechaHasta: fecha_nacimiento_hasta
             });
 
             if (exportAll === 'true') {

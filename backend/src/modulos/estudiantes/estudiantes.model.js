@@ -1224,71 +1224,363 @@ class estudiantesModel {
         const [rows] = await conexion.execute(query, [cedula, cedulaEscolar]);
         return rows[0];
     }
+    //!Vieja
+    // async obtenerTodosEstudiantes(filters) {
+    //     const {
+    //         page = 1,
+    //         limit = 50,
+    //         search,
+    //         sortBy = 'apellidos',
+    //         sortOrder = 'asc',
+    //         exportAll,
+    //         genero,
+    //         nacionalidad,
+    //         estado,
+    //         tipoSangre,        // NUEVO
+    //         tieneCedula,       // NUEVO
+    //         fechaDesde,        // NUEVO
+    //         fechaHasta         // NUEVO
+    //     } = filters;
+
+    //     const finalLimit = exportAll ? 10000 : limit;
+    //     const finalPage = exportAll ? 1 : page;
+    //     const offset = (finalPage - 1) * finalLimit;
+
+    //     let query = `
+    //     SELECT 
+    //         e.id,
+    //         e.nombres,
+    //         e.apellidos,
+    //         e.cedula,
+    //         e.tipo_cedula,
+    //         e.tiene_cedula,
+    //         e.cedula_escolar,
+    //         e.sexo as genero,
+    //         e.fecha_nacimiento,
+    //         e.created_at,
+    //         e.nacionalidad,
+    //         e.direccion_estado,
+    //         e.tipo_sangre,        /* NUEVO CAMPO */
+    //         e.foto,
+    //         r.id as rep_id,
+    //         r.nombres as rep_nombres,
+    //         r.apellidos as rep_apellidos,
+    //         r.cedula as rep_cedula,
+    //         r.telefono as rep_telefono,
+    //         r.relacion as rep_relacion
+    //     FROM estudiantes e
+    //     JOIN representantes r ON e.representante_id = r.id
+    //     WHERE 1=1
+    // `;
+
+    //     const params = [];
+
+    //     // Filtro de búsqueda
+    //     if (search) {
+    //         query += `
+    //         AND (
+    //             e.nombres LIKE ? 
+    //             OR e.apellidos LIKE ? 
+    //             OR e.cedula LIKE ? 
+    //             OR e.cedula_escolar LIKE ?
+    //             OR r.nombres LIKE ?
+    //             OR r.apellidos LIKE ?
+    //             OR r.cedula LIKE ?
+    //         )
+    //     `;
+    //         const searchTerm = `%${search}%`;
+    //         params.push(...Array(7).fill(searchTerm));
+    //     }
+
+    //     // Filtros adicionales
+    //     if (genero && genero !== 'todos') {
+    //         query += ` AND e.sexo = ?`;
+    //         params.push(genero);
+    //     }
+
+    //     if (nacionalidad && nacionalidad !== 'todos') {
+    //         if (nacionalidad === 'Venezolana') {
+    //             query += ` AND e.nacionalidad LIKE ?`;
+    //             params.push('%Venezolana%');
+    //         } else {
+    //             query += ` AND e.nacionalidad = ?`;
+    //             params.push(nacionalidad);
+    //         }
+    //     }
+
+    //     if (estado && estado !== 'todos') {
+    //         query += ` AND e.direccion_estado = ?`;
+    //         params.push(estado);
+    //     }
+
+    //     // 🔥 NUEVO: Filtro por tipo de sangre
+    //     if (tipoSangre && tipoSangre !== 'todos') {
+    //         query += ` AND e.tipo_sangre = ?`;
+    //         params.push(tipoSangre);
+    //     }
+
+    //     // 🔥 NUEVO: Filtro por tiene cédula
+    //     if (tieneCedula && tieneCedula !== 'todos') {
+    //         if (tieneCedula === 'si') {
+    //             query += ` AND e.tiene_cedula = 1 AND e.cedula IS NOT NULL AND e.cedula != ''`;
+    //         } else if (tieneCedula === 'no') {
+    //             query += ` AND (e.tiene_cedula = 0 OR e.tiene_cedula IS NULL OR e.cedula IS NULL OR e.cedula = '')`;
+    //         }
+    //     }
+
+    //     // 🔥 NUEVO: Filtro por rango de edad (fecha de nacimiento)
+    //     if (fechaDesde) {
+    //         query += ` AND e.fecha_nacimiento >= ?`;
+    //         params.push(fechaDesde);
+    //     }
+
+    //     if (fechaHasta) {
+    //         query += ` AND e.fecha_nacimiento <= ?`;
+    //         params.push(fechaHasta);
+    //     }
+
+    //     // Ordenamiento
+    //     const validSortColumns = ['apellidos', 'nombres', 'cedula', 'cedula_escolar', 'fecha_nacimiento', 'created_at'];
+    //     const sortColumn = validSortColumns.includes(sortBy) ? sortBy : 'apellidos';
+    //     const sortDirection = sortOrder === 'desc' ? 'DESC' : 'ASC';
+
+    //     query += ` ORDER BY e.${sortColumn} ${sortDirection}`;
+
+    //     // Obtener conteo total
+    //     let countQuery = `
+    //     SELECT COUNT(*) as total 
+    //     FROM estudiantes e 
+    //     JOIN representantes r ON e.representante_id = r.id 
+    //     WHERE 1=1
+    // `;
+    //     const countParams = [];
+
+    //     if (search) {
+    //         countQuery += ` AND (
+    //         e.nombres LIKE ? 
+    //         OR e.apellidos LIKE ? 
+    //         OR e.cedula LIKE ? 
+    //         OR e.cedula_escolar LIKE ?
+    //         OR r.nombres LIKE ?
+    //         OR r.apellidos LIKE ?
+    //         OR r.cedula LIKE ?
+    //     )`;
+    //         const searchTerm = `%${search}%`;
+    //         countParams.push(...Array(7).fill(searchTerm));
+    //     }
+
+    //     if (genero && genero !== 'todos') {
+    //         countQuery += ` AND e.sexo = ?`;
+    //         countParams.push(genero);
+    //     }
+
+    //     if (nacionalidad && nacionalidad !== 'todos') {
+    //         if (nacionalidad === 'Venezolana') {
+    //             countQuery += ` AND e.nacionalidad LIKE ?`;
+    //             countParams.push('%Venezolana%');
+    //         } else {
+    //             countQuery += ` AND e.nacionalidad = ?`;
+    //             countParams.push(nacionalidad);
+    //         }
+    //     }
+
+    //     if (estado && estado !== 'todos') {
+    //         countQuery += ` AND e.direccion_estado = ?`;
+    //         countParams.push(estado);
+    //     }
+
+    //     if (tipoSangre && tipoSangre !== 'todos') {
+    //         countQuery += ` AND e.tipo_sangre = ?`;
+    //         countParams.push(tipoSangre);
+    //     }
+
+    //     if (tieneCedula && tieneCedula !== 'todos') {
+    //         if (tieneCedula === 'si') {
+    //             countQuery += ` AND e.tiene_cedula = 1 AND e.cedula IS NOT NULL AND e.cedula != ''`;
+    //         } else if (tieneCedula === 'no') {
+    //             countQuery += ` AND (e.tiene_cedula = 0 OR e.tiene_cedula IS NULL OR e.cedula IS NULL OR e.cedula = '')`;
+    //         }
+    //     }
+
+    //     if (fechaDesde) {
+    //         countQuery += ` AND e.fecha_nacimiento >= ?`;
+    //         countParams.push(fechaDesde);
+    //     }
+
+    //     if (fechaHasta) {
+    //         countQuery += ` AND e.fecha_nacimiento <= ?`;
+    //         countParams.push(fechaHasta);
+    //     }
+
+    //     const [totalResult] = await pool.query(countQuery, countParams);
+    //     const total = totalResult[0]?.total || 0;
+
+    //     // Añadir paginación
+    //     query += ' LIMIT ? OFFSET ?';
+    //     params.push(parseInt(finalLimit), parseInt(offset));
+
+    //     // Ejecutar consulta
+    //     const [rows] = await pool.query(query, params);
+
+    //     const students = rows.map(row => ({
+    //         id: row.id,
+    //         nombres: row.nombres,
+    //         apellidos: row.apellidos,
+    //         nombreCompleto: `${row.nombres} ${row.apellidos}`.trim(),
+    //         cedula: row.cedula,
+    //         tipoCedula: row.tipo_cedula,
+    //         tieneCedula: row.tiene_cedula === 1,
+    //         cedula_escolar: row.cedula_escolar,
+    //         sexo: row.genero,
+    //         fecha_nacimiento: row.fecha_nacimiento,
+    //         edad: this.calcularEdad(row.fecha_nacimiento),
+    //         created_at: row.created_at,
+    //         nacionalidad: row.nacionalidad,
+    //         direccion_estado: row.direccion_estado,
+    //         tipo_sangre: row.tipo_sangre,
+    //         foto: row.foto,
+    //         fotoUrl: row.foto ? `${process.env.API_URL || 'http://localhost:3000'}/api/carpeta-estudiantes/${row.foto}` : null,
+    //         representante: {
+    //             id: row.rep_id,
+    //             nombres: row.rep_nombres,
+    //             apellidos: row.rep_apellidos,
+    //             nombreCompleto: `${row.rep_nombres || ''} ${row.rep_apellidos || ''}`.trim(),
+    //             cedula: row.rep_cedula,
+    //             telefono: row.rep_telefono,
+    //             relacion: row.rep_relacion
+    //         }
+    //     }));
+
+    //     return {
+    //         students,
+    //         total
+    //     };
+    // }
 
     async obtenerTodosEstudiantes(filters) {
-        const { page = 1, limit = 50, search, sortBy = 'apellidos', sortOrder = 'asc', exportAll, genero, nacionalidad, estado } = filters;
+        const {
+            page = 1,
+            limit = 50,
+            search,
+            sortBy = 'apellidos',
+            sortOrder = 'asc',
+            exportAll,
+            genero,
+            nacionalidad,
+            estado,
+            tipoSangre,
+            tieneCedula,
+            fechaDesde,
+            fechaHasta
+        } = filters;
 
         const finalLimit = exportAll ? 10000 : limit;
         const finalPage = exportAll ? 1 : page;
         const offset = (finalPage - 1) * finalLimit;
 
         let query = `
-        SELECT 
-            e.id,
-            e.nombres,
-            e.apellidos,
-            e.cedula,
-            e.cedula_escolar,
-            e.genero,
-            e.fecha_nacimiento,
-            e.created_at,
-            e.nacionalidad,
-            e.direccion_estado,
-            e.foto,
-            r.id as rep_id,
-            r.nombres as rep_nombres,
-            r.apellidos as rep_apellidos,
-            r.cedula as rep_cedula,
-            r.telefono as rep_telefono,
-            r.relacion as rep_relacion
-        FROM estudiantes e
-        JOIN representantes r ON e.representante_id = r.id
-        WHERE 1=1
-    `;
+            SELECT 
+                e.id,
+                e.nombres,
+                e.apellidos,
+                e.cedula,
+                e.tipo_cedula,
+                e.tiene_cedula,
+                e.cedula_escolar,
+                e.genero,
+                e.fecha_nacimiento,
+                e.created_at,
+                e.nacionalidad,
+                e.direccion_estado,
+                e.tipo_sangre,
+                e.foto,
+                r.id as rep_id,
+                r.nombres as rep_nombres,
+                r.apellidos as rep_apellidos,
+                r.cedula as rep_cedula,
+                r.telefono as rep_telefono,
+                r.relacion as rep_relacion,
+                r.sexo as rep_sexo
+            FROM estudiantes e
+            JOIN representantes r ON e.representante_id = r.id
+            WHERE 1=1
+        `;
 
         const params = [];
 
-        // Filtro de búsqueda
+        // Búsqueda por texto
         if (search) {
             query += `
-            AND (
-                e.nombres LIKE ? 
-                OR e.apellidos LIKE ? 
-                OR e.cedula LIKE ? 
-                OR e.cedula_escolar LIKE ?
-                OR r.nombres LIKE ?
-                OR r.apellidos LIKE ?
-                OR r.cedula LIKE ?
-            )
-        `;
+                AND (
+                    e.nombres LIKE ? 
+                    OR e.apellidos LIKE ? 
+                    OR e.cedula LIKE ? 
+                    OR e.cedula_escolar LIKE ?
+                    OR r.nombres LIKE ?
+                    OR r.apellidos LIKE ?
+                    OR r.cedula LIKE ?
+                )
+            `;
             const searchTerm = `%${search}%`;
             params.push(...Array(7).fill(searchTerm));
         }
 
-        // Filtros adicionales
-        if (genero) {
+        // Filtro por género
+        if (genero && genero !== 'todos') {
             query += ` AND e.genero = ?`;
             params.push(genero);
         }
 
-        if (nacionalidad) {
-            query += ` AND e.nacionalidad LIKE ?`;
-            params.push(`%${nacionalidad}%`);
+        // Filtro por nacionalidad
+        if (nacionalidad && nacionalidad !== 'todos') {
+            if (nacionalidad === 'Venezolana') {
+                query += ` AND e.nacionalidad LIKE ?`;
+                params.push('%Venezolana%');
+            } else {
+                query += ` AND e.nacionalidad = ?`;
+                params.push(nacionalidad);
+            }
         }
 
-        if (estado) {
+        // Filtro por estado
+        if (estado && estado !== 'todos') {
             query += ` AND e.direccion_estado = ?`;
             params.push(estado);
+        }
+
+        // 🔥 NUEVO: Filtro por tipo de sangre
+        if (tipoSangre && tipoSangre !== 'todos') {
+            query += ` AND e.tipo_sangre = ?`;
+            params.push(tipoSangre);
+        }
+
+        // 🔥 NUEVO: Filtro por tiene cédula
+        if (tieneCedula && tieneCedula !== 'todos') {
+            if (tieneCedula === 'si') {
+                query += ` AND e.tiene_cedula = 1 AND e.cedula IS NOT NULL AND e.cedula != ''`;
+            } else if (tieneCedula === 'no') {
+                query += ` AND (e.tiene_cedula = 0 OR e.tiene_cedula IS NULL OR e.cedula IS NULL OR e.cedula = '')`;
+            }
+        }
+
+        // 🔥 NUEVO: Filtro por rango de fechas - CORREGIDO
+        let fechaInicio = fechaDesde;
+        let fechaFin = fechaHasta;
+
+        // Si las fechas están invertidas, corregirlas automáticamente
+        if (fechaDesde && fechaHasta && fechaDesde > fechaHasta) {
+            fechaInicio = fechaHasta;
+            fechaFin = fechaDesde;
+        }
+
+        if (fechaInicio) {
+            query += ` AND e.fecha_nacimiento >= ?`;
+            params.push(fechaInicio);
+        }
+
+        if (fechaFin) {
+            query += ` AND e.fecha_nacimiento <= ?`;
+            params.push(fechaFin);
         }
 
         // Ordenamiento
@@ -1298,8 +1590,15 @@ class estudiantesModel {
 
         query += ` ORDER BY e.${sortColumn} ${sortDirection}`;
 
-        // Obtener conteo total
-        let countQuery = `SELECT COUNT(*) as total FROM estudiantes e JOIN representantes r ON e.representante_id = r.id WHERE 1=1`;
+        // ========== COUNT QUERY ==========
+        let countQuery = `
+            SELECT COUNT(*) as total 
+            FROM estudiantes e 
+            JOIN representantes r ON e.representante_id = r.id 
+            WHERE 1=1
+        `;
+        const countParams = [];
+
         if (search) {
             countQuery += ` AND (
                 e.nombres LIKE ? 
@@ -1310,25 +1609,54 @@ class estudiantesModel {
                 OR r.apellidos LIKE ?
                 OR r.cedula LIKE ?
             )`;
+            const searchTerm = `%${search}%`;
+            countParams.push(...Array(7).fill(searchTerm));
         }
 
-        const countParams = search ? Array(7).fill(`%${search}%`) : [];
-
-        if (genero) {
+        if (genero && genero !== 'todos') {
             countQuery += ` AND e.genero = ?`;
             countParams.push(genero);
         }
 
-        if (nacionalidad) {
-            countQuery += ` AND e.nacionalidad LIKE ?`;
-            countParams.push(`%${nacionalidad}%`);
+        if (nacionalidad && nacionalidad !== 'todos') {
+            if (nacionalidad === 'Venezolana') {
+                countQuery += ` AND e.nacionalidad LIKE ?`;
+                countParams.push('%Venezolana%');
+            } else {
+                countQuery += ` AND e.nacionalidad = ?`;
+                countParams.push(nacionalidad);
+            }
         }
 
-        if (estado) {
+        if (estado && estado !== 'todos') {
             countQuery += ` AND e.direccion_estado = ?`;
             countParams.push(estado);
         }
 
+        if (tipoSangre && tipoSangre !== 'todos') {
+            countQuery += ` AND e.tipo_sangre = ?`;
+            countParams.push(tipoSangre);
+        }
+
+        if (tieneCedula && tieneCedula !== 'todos') {
+            if (tieneCedula === 'si') {
+                countQuery += ` AND e.tiene_cedula = 1 AND e.cedula IS NOT NULL AND e.cedula != ''`;
+            } else if (tieneCedula === 'no') {
+                countQuery += ` AND (e.tiene_cedula = 0 OR e.tiene_cedula IS NULL OR e.cedula IS NULL OR e.cedula = '')`;
+            }
+        }
+
+        if (fechaInicio) {
+            countQuery += ` AND e.fecha_nacimiento >= ?`;
+            countParams.push(fechaInicio);
+        }
+
+        if (fechaFin) {
+            countQuery += ` AND e.fecha_nacimiento <= ?`;
+            countParams.push(fechaFin);
+        }
+
+        // Ejecutar COUNT
         const [totalResult] = await pool.query(countQuery, countParams);
         const total = totalResult[0]?.total || 0;
 
@@ -1336,28 +1664,37 @@ class estudiantesModel {
         query += ' LIMIT ? OFFSET ?';
         params.push(parseInt(finalLimit), parseInt(offset));
 
-        // Ejecutar consulta
+        // Ejecutar consulta principal
         const [rows] = await pool.query(query, params);
 
+        // Mapear resultados
         const students = rows.map(row => ({
             id: row.id,
             nombres: row.nombres,
             apellidos: row.apellidos,
+            nombreCompleto: `${row.nombres} ${row.apellidos}`.trim(),
             cedula: row.cedula,
+            tipoCedula: row.tipo_cedula,
+            tieneCedula: row.tiene_cedula === 1,
             cedula_escolar: row.cedula_escolar,
             genero: row.genero,
             fecha_nacimiento: row.fecha_nacimiento,
+            edad: this.calcularEdad ? this.calcularEdad(row.fecha_nacimiento) : null,
             created_at: row.created_at,
             nacionalidad: row.nacionalidad,
             direccion_estado: row.direccion_estado,
+            tipo_sangre: row.tipo_sangre,
             foto: row.foto,
+            fotoUrl: row.foto ? `${process.env.API_URL || 'http://localhost:3000'}/api/carpeta-estudiantes/${row.foto}` : null,
             representante: {
                 id: row.rep_id,
                 nombres: row.rep_nombres,
                 apellidos: row.rep_apellidos,
+                nombreCompleto: `${row.rep_nombres || ''} ${row.rep_apellidos || ''}`.trim(),
                 cedula: row.rep_cedula,
                 telefono: row.rep_telefono,
-                relacion: row.rep_relacion
+                relacion: row.rep_relacion,
+                sexo: row.rep_sexo
             }
         }));
 
@@ -1581,6 +1918,25 @@ class estudiantesModel {
         const [rows] = await pool.execute(query, params);
         return rows;
     }
+
+    // Agrega esta función al final de tu modelo
+    calcularEdad(fechaNacimiento) {
+        if (!fechaNacimiento) return null;
+        try {
+            const hoy = new Date();
+            const nacimiento = new Date(fechaNacimiento);
+            let edad = hoy.getFullYear() - nacimiento.getFullYear();
+            const mes = hoy.getMonth() - nacimiento.getMonth();
+
+            if (mes < 0 || (mes === 0 && hoy.getDate() < nacimiento.getDate())) {
+                edad--;
+            }
+            return edad;
+        } catch (error) {
+            return null;
+        }
+    }
+
 }
 
 module.exports = new estudiantesModel();
