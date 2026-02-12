@@ -52,7 +52,7 @@ const InicioPagina = () => {
                                     Bienvenido {user?.name || 'Usuario'}
                                 </h1>
                                 <p className="text-gray-600 mt-1">
-                                    Resumen estadístico general de la institución
+                                    Resumen estadístico general del Complejo Educativo Marielba Rodriguez
                                 </p>
                             </div>
                         </div>
