@@ -27,7 +27,7 @@ export class PerfilServicio {
         try {
             const datosAdaptados = PerfilAdaptador.adaptarActualizacionPerfil(datos);
             const response = await axiosInstance.put(`usuarios/perfil/${id}`, datosAdaptados);
-
+            console.log("respuesta", response)
             if (response.data.success) {
                 return PerfilAdaptador.adaptarPerfil(response.data.data);
             }

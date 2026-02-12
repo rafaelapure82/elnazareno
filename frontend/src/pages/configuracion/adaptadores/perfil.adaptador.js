@@ -3,6 +3,7 @@ export class PerfilAdaptador {
     //? Adapta los datos del backend al formato esperado por el frontend
 
     static adaptarPerfil(datosBackend) {
+        console.log("dat", datosBackend)
         return {
             id: datosBackend.id,
             nombre: datosBackend.nombre,

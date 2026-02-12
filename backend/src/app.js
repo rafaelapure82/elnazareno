@@ -21,6 +21,7 @@ const corsOptions = {
 //*Servir Carpetas
 app.use("/api/carpeta-actividades", express.static(path.join(__dirname, 'modulos', 'actividades', 'carpeta-actividades')));
 app.use("/api/carpeta-personal", express.static(path.join(__dirname, 'modulos', 'personal', 'carpeta-personal')))
+app.use("/api/carpeta-estudiantes", express.static(path.join(__dirname, 'modulos', 'estudiantes', 'carpeta-estudiantes')))
 
 
 //*middlewares 

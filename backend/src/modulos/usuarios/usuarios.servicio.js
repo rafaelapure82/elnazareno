@@ -160,6 +160,9 @@ class usuariosServicio {
             if (!resultado) {
                 throw new Error('No se pudo actualizar el usuario');
             }
+
+            const usuario = await usuariosModel.obtenerUsuarioNormalPorId(id)
+            return usuario
         }
         catch (error) {
             throw error;

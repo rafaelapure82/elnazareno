@@ -223,7 +223,7 @@ const PersonalAccion = ({
                     </button>
                     {/*//!!#ojito papa */}
 
-                    <button
+                    {/* <button
                         onClick={() => {
                             console.log('DEBUG - Estado actual:', {
                                 personal: personal,
@@ -248,7 +248,7 @@ const PersonalAccion = ({
                         className="px-4 py-2 bg-yellow-500 text-white rounded-lg"
                     >
                         Debug Exportación
-                    </button>
+                    </button> */}
 
                     <div className="text-sm text-gray-600">
                         <span className="font-medium">{totalCount}</span> {getTipoLabelPlural()} registrado{totalCount !== 1 ? 's' : ''}

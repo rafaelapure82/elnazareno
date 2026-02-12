@@ -86,6 +86,7 @@ class usuariosController {
             const { id } = req.params;
             const { nombre, usuario, correo, rol } = req.body;
             const resultado = await usuariosServicio.actualizarUsuario(id, { nombre, usuario, correo, rol });
+            console.log("resuktad", resultado)
             res.status(200).json({
                 success: true,
                 resultado,
@@ -157,9 +158,10 @@ class usuariosController {
         try {
             const { id } = req.params;
             const { nombre, usuario, correo } = req.body;
-            await usuariosServicio.actualizarUsuarioNormal(id, { nombre, usuario, correo });
+            const data = await usuariosServicio.actualizarUsuarioNormal(id, { nombre, usuario, correo });
             res.status(200).json({
                 success: true,
+                data,
                 message: 'Usuario actualizado exitosamente'
             });
         } catch (error) {

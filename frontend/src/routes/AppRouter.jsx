@@ -7,7 +7,7 @@ import DashboardPage from '../pages/Dashboard/DashboardPage';
 import InicioPagina from '../pages/inicio/componentes/InicioPagina'
 import ActividadesPage from '../pages/actividades/paginas/ActividadesPage';
 import { ReportesPage } from '../pages/reportes';
-import { EstudiantesPage } from '../pages/estudiantes';
+// import { EstudiantesList } from '../pages/estudiantes';
 import {
     PersonalLayout,
     DocentesPage,
@@ -25,6 +25,13 @@ import EditarSeccionPage from '../pages/secciones/paginas/EditarSeccionPage';
 import EstadisticasPage from '../pages/secciones/paginas/EstadisticasPage';
 
 import UsuariosModulo from '../pages/usuarios/index';
+
+import {
+    EstudiantesPage,
+    CrearEstudiantePage,
+    EditarEstudiantePage,
+    DetalleEstudiantePage
+} from '../pages/estudiantes/';
 
 const AppRouter = () => {
     return (
@@ -57,7 +64,6 @@ const AppRouter = () => {
                     <Route path="/inicio" element={<InicioPagina />} />
                     <Route path="/actividades" element={<ActividadesPage />} />
                     <Route path="/reportes" element={<ReportesPage />} />
-                    <Route path="/estudiantes" element={<EstudiantesPage />} />
                     <Route path="/personal" element={<PersonalLayout />}>
                         <Route path="docentes" element={<DocentesPage />} />
                         <Route path="administrativos" element={<AdministrativosPage />} />
@@ -67,6 +73,11 @@ const AppRouter = () => {
                     // <Route path="/usuarios" element={<UsuariosModulo />} />
 
 
+
+                    <Route path="/estudiantes" element={<EstudiantesPage />} />
+                    <Route path="/estudiantes/nuevo" element={<CrearEstudiantePage />} />
+                    <Route path="/estudiantes/:id" element={<DetalleEstudiantePage />} />
+                    <Route path="/estudiantes/:id/editar" element={<EditarEstudiantePage />} />
 
                     {/* Perfil - Acceso básico autenticado
                     <Route path="/profile" element={<ProfilePage />} />

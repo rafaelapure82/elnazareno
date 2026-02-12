@@ -11,7 +11,7 @@ export const ConfiguracionPerfil = ({ idUsuario }) => {
         correo: ''
     });
     const [mensaje, setMensaje] = useState('');
-
+    console.log("idUsuario", idUsuario)
     // Inicializar formData cuando perfil se carga
     React.useEffect(() => {
         if (perfil) {

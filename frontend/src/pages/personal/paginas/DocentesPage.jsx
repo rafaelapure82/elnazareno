@@ -404,7 +404,7 @@ const DocentesPage = () => {
                             </div>
                         </div>
 
-                        <div className="bg-white rounded-lg border border-gray-200 p-4">
+                        {/* <div className="bg-white rounded-lg border border-gray-200 p-4">
                             <div className="flex items-center justify-between">
                                 <div>
                                     <div className="text-2xl font-bold text-gray-600">{stats.otros}</div>
@@ -412,7 +412,7 @@ const DocentesPage = () => {
                                 </div>
                                 <FaChalkboardTeacher className="h-8 w-8 text-gray-400" />
                             </div>
-                        </div>
+                        </div> */}
                     </div>
                 </div>
 

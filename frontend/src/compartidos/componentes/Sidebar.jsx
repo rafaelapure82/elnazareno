@@ -567,12 +567,12 @@ export function Sidebar({ sidebarOpen, setSidebarOpen }) {
             admin: true,
             icon: <FaUserPlus className="text-xl" />
         },
-        {
-            label: "Editar Usuarios",
-            to: "/editar-usuario",
-            admin: true,
-            icon: <FaUserEdit className="text-xl" />
-        },
+        // {
+        //     label: "Editar Usuarios",
+        //     to: "/editar-usuario",
+        //     admin: true,
+        //     icon: <FaUserEdit className="text-xl" />
+        // },
 
         // Items principales
         {
