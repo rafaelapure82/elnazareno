@@ -1,268 +1,24 @@
-// import React from 'react';
-// import {
-//     FaUser, FaPhone, FaEnvelope, FaIdCard, FaCalendar,
-//     FaVenusMars, FaBriefcase, FaBuilding, FaTrash, FaEdit, FaEye,
-//     FaSpinner, FaChalkboardTeacher, FaUserTie, FaHardHat
-// } from 'react-icons/fa';
-// import { PersonalAdaptador } from '../adaptadores/personal.adaptador';
-
-// const PersonalLista = ({
-//     personal,
-//     loading,
-//     tipo,
-//     onEdit,
-//     onDelete,
-//     onView,
-//     onSelect,
-//     selectedIds = []
-// }) => {
-//     const getTipoIcon = (tipoPersonal) => {
-//         switch (tipoPersonal) {
-//             case 'docente': return FaChalkboardTeacher;
-//             case 'administrativo': return FaUserTie;
-//             case 'obrero': return FaHardHat;
-//             default: return FaUser;
-//         }
-//     };
-
-//     const getTipoColor = (tipoPersonal) => {
-//         const colors = PersonalAdaptador.getColorByTipo(tipoPersonal);
-//         return colors;
-//     };
-
-//     const getSexoIcon = (sexo) => {
-//         switch (sexo) {
-//             case 'masculino': return { icon: FaUser, color: 'text-blue-600' };
-//             case 'femenino': return { icon: FaUser, color: 'text-pink-600' };
-//             default: return { icon: FaUser, color: 'text-gray-600' };
-//         }
-//     };
-
-//     const formatDate = (dateString) => {
-//         if (!dateString) return '';
-//         const date = new Date(dateString);
-//         return date.toLocaleDateString('es-ES', {
-//             day: '2-digit',
-//             month: 'short',
-//             year: 'numeric'
-//         });
-//     };
-
-//     if (loading) {
-//         return (
-//             <div className="flex justify-center items-center py-12">
-//                 <FaSpinner className="animate-spin h-8 w-8 text-indigo-600" />
-//                 <span className="ml-3 text-gray-600">Cargando personal...</span>
-//             </div>
-//         );
-//     }
-
-//     if (personal.length === 0) {
-//         return (
-//             <div className="text-center py-12">
-//                 {tipo === 'docente' && <FaChalkboardTeacher className="h-16 w-16 text-gray-300 mx-auto mb-4" />}
-//                 {tipo === 'administrativo' && <FaUserTie className="h-16 w-16 text-gray-300 mx-auto mb-4" />}
-//                 {tipo === 'obrero' && <FaHardHat className="h-16 w-16 text-gray-300 mx-auto mb-4" />}
-//                 <h3 className="text-lg font-medium text-gray-900 mb-2">
-//                     {tipo === 'docente' && 'No hay docentes registrados'}
-//                     {tipo === 'administrativo' && 'No hay administrativos registrados'}
-//                     {tipo === 'obrero' && 'No hay obreros registrados'}
-//                 </h3>
-//                 <p className="text-gray-500">Registra el primer personal para comenzar</p>
-//             </div>
-//         );
-//     }
-
-//     return (
-//         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-//             {/* Header de la tabla */}
-//             <div className="grid grid-cols-12 gap-4 p-4 border-b bg-gray-50 text-sm font-medium text-gray-700">
-//                 <div className="col-span-1"></div>
-//                 <div className="col-span-3">Personal</div>
-//                 <div className="col-span-2">Contacto</div>
-//                 <div className="col-span-2">Información Laboral</div>
-//                 <div className="col-span-2">Detalles</div>
-//                 <div className="col-span-2">Acciones</div>
-//             </div>
-
-//             {/* Lista de personal */}
-//             <div className="divide-y divide-gray-100">
-//                 {personal.map((persona) => {
-//                     const TipoIcon = getTipoIcon(persona.tipo);
-//                     const tipoColors = getTipoColor(persona.tipo);
-//                     const sexoData = getSexoIcon(persona.sexo);
-//                     const SexoIcon = sexoData.icon;
-//                     const isSelected = selectedIds.includes(persona.id);
-
-//                     return (
-//                         <div
-//                             key={persona.id}
-//                             className={`grid grid-cols-12 gap-4 p-4 hover:bg-gray-50 transition-colors ${isSelected ? 'bg-indigo-50' : ''
-//                                 }`}
-//                             onClick={() => onSelect?.(persona.id)}
-//                         >
-//                             {/* Selección */}
-//                             <div className="col-span-1 flex items-center">
-//                                 <input
-//                                     type="checkbox"
-//                                     checked={isSelected}
-//                                     onChange={() => onSelect?.(persona.id)}
-//                                     className="h-4 w-4 text-indigo-600 rounded focus:ring-indigo-500"
-//                                     onClick={(e) => e.stopPropagation()}
-//                                 />
-//                             </div>
-
-//                             {/* Información del personal */}
-//                             <div className="col-span-3">
-//                                 <div className="flex items-center space-x-3">
-//                                     <div className={`p-2 rounded-lg ${tipoColors.bg}`}>
-//                                         <TipoIcon className={`h-5 w-5 ${tipoColors.text}`} />
-//                                     </div>
-//                                     <div>
-//                                         <p className="font-medium text-gray-900">{persona.nombreCompleto}</p>
-//                                         <div className="flex items-center text-sm text-gray-500 mt-1">
-//                                             <FaIdCard className="h-3 w-3 mr-1" />
-//                                             <span>C.I.: {persona.cedula}</span>
-//                                         </div>
-//                                         <p className="text-xs text-gray-400 mt-1">
-//                                             ID: {persona.id} • {persona.tipoLabel}
-//                                         </p>
-//                                     </div>
-//                                 </div>
-//                             </div>
-
-//                             {/* Contacto */}
-//                             <div className="col-span-2">
-//                                 <div className="space-y-1">
-//                                     <div className="flex items-center text-sm">
-//                                         <FaPhone className="h-3 w-3 text-gray-400 mr-2" />
-//                                         <span className="text-gray-600 truncate">{persona.telefono}</span>
-//                                     </div>
-//                                     <div className="flex items-center text-sm">
-//                                         <FaEnvelope className="h-3 w-3 text-gray-400 mr-2" />
-//                                         <span className="text-gray-600 truncate">{persona.correo}</span>
-//                                     </div>
-//                                     <div className="flex items-center text-sm">
-//                                         <SexoIcon className={`h-3 w-3 ${sexoData.color} mr-2`} />
-//                                         <span className="text-gray-600 capitalize">{persona.sexo}</span>
-//                                     </div>
-//                                 </div>
-//                             </div>
-
-//                             {/* Información Laboral */}
-//                             <div className="col-span-2">
-//                                 <div className="space-y-1">
-//                                     <div className="flex items-center">
-//                                         <FaBriefcase className="h-4 w-4 text-gray-400 mr-2" />
-//                                         <span className="text-gray-900 text-sm truncate" title={persona.cargo_voucher}>
-//                                             {persona.cargo_voucher}
-//                                         </span>
-//                                     </div>
-//                                     <div className="flex items-center mt-2">
-//                                         <FaBuilding className="h-4 w-4 text-gray-400 mr-2" />
-//                                         <span className="text-gray-600 text-sm truncate" title={persona.dependencia}>
-//                                             {persona.dependencia}
-//                                         </span>
-//                                     </div>
-//                                     {persona.carga_horaria && (
-//                                         <div className="text-xs text-gray-500 mt-2">
-//                                             Carga: {persona.carga_horaria}
-//                                         </div>
-//                                     )}
-//                                 </div>
-//                             </div>
-
-//                             {/* Detalles */}
-//                             <div className="col-span-2">
-//                                 <div className="space-y-2">
-//                                     <div className="flex items-center text-sm">
-//                                         <FaCalendar className="h-3 w-3 text-gray-400 mr-2" />
-//                                         <div>
-//                                             <div className="text-gray-900">{persona.edad} años</div>
-//                                             <div className="text-xs text-gray-500">Edad</div>
-//                                         </div>
-//                                     </div>
-//                                     {persona.antiguedad && (
-//                                         <div className="flex items-center text-sm">
-//                                             <FaCalendar className="h-3 w-3 text-gray-400 mr-2" />
-//                                             <div>
-//                                                 <div className="text-gray-900">{persona.antiguedad} años</div>
-//                                                 <div className="text-xs text-gray-500">Antigüedad</div>
-//                                             </div>
-//                                         </div>
-//                                     )}
-//                                     {persona.fecha_ingreso_mppe && (
-//                                         <div className="text-xs text-gray-500 mt-1">
-//                                             Ingreso: {formatDate(persona.fecha_ingreso_mppe)}
-//                                         </div>
-//                                     )}
-//                                 </div>
-//                             </div>
-
-//                             {/* Acciones */}
-//                             <div className="col-span-2">
-//                                 <div className="flex items-center space-x-2">
-//                                     <button
-//                                         onClick={(e) => {
-//                                             e.stopPropagation();
-//                                             onView?.(persona);
-//                                         }}
-//                                         className="p-2 text-gray-400 hover:text-blue-600 transition-colors cursor-pointer"
-//                                         title="Ver detalles"
-//                                     >
-//                                         <FaEye className="h-4 w-4" />
-//                                     </button>
-//                                     <button
-//                                         onClick={(e) => {
-//                                             e.stopPropagation();
-//                                             onEdit?.(persona);
-//                                         }}
-//                                         className="p-2 text-gray-400 hover:text-green-600 transition-colors cursor-pointer"
-//                                         title="Editar"
-//                                     >
-//                                         <FaEdit className="h-4 w-4" />
-//                                     </button>
-//                                     <button
-//                                         onClick={(e) => {
-//                                             e.stopPropagation();
-//                                             onDelete?.(persona.id);
-//                                         }}
-//                                         className="p-2 text-gray-400 hover:text-red-600 transition-colors cursor-pointer"
-//                                         title="Eliminar"
-//                                     >
-//                                         <FaTrash className="h-4 w-4" />
-//                                     </button>
-//                                 </div>
-//                             </div>
-//                         </div>
-//                     );
-//                 })}
-//             </div>
-
-//             {/* Footer */}
-//             <div className="p-4 border-t bg-gray-50">
-//                 <div className="flex justify-between items-center">
-//                     <span className="text-sm text-gray-600">
-//                         {personal.length} {tipo}{personal.length !== 1 ? 's' : ''} encontrado{personal.length !== 1 ? 's' : ''}
-//                     </span>
-//                     <span className="text-sm text-gray-500">
-//                         Última actualización: {new Date().toLocaleTimeString('es-ES')}
-//                     </span>
-//                 </div>
-//             </div>
-//         </div>
-//     );
-// };
-
-// export default PersonalLista;
-
-
 import React from 'react';
 import {
-    FaUser, FaPhone, FaEnvelope, FaIdCard, FaCalendar,
-    FaVenusMars, FaBriefcase, FaBuilding, FaTrash, FaEdit, FaEye,
-    FaSpinner, FaChalkboardTeacher, FaUserTie, FaHardHat
-} from 'react-icons/fa';
+    User,
+    Phone,
+    Mail,
+    Fingerprint,
+    Calendar,
+    Briefcase,
+    Building2,
+    Trash2,
+    Edit3,
+    Eye,
+    GraduationCap,
+    UserCog,
+    HardHat,
+    Loader2,
+    CheckCircle2,
+    MoreHorizontal,
+    Clock
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { PersonalAdaptador } from '../adaptadores/personal.adaptador';
 
 const PersonalLista = ({
@@ -277,24 +33,16 @@ const PersonalLista = ({
 }) => {
     const getTipoIcon = (tipoPersonal) => {
         switch (tipoPersonal) {
-            case 'docente': return FaChalkboardTeacher;
-            case 'administrativo': return FaUserTie;
-            case 'obrero': return FaHardHat;
-            default: return FaUser;
+            case 'docente': return GraduationCap;
+            case 'administrativo': return UserCog;
+            case 'obrero': return HardHat;
+            default: return User;
         }
     };
 
     const getTipoColor = (tipoPersonal) => {
         const colors = PersonalAdaptador.getColorByTipo(tipoPersonal);
         return colors;
-    };
-
-    const getSexoIcon = (sexo) => {
-        switch (sexo) {
-            case 'masculino': return { icon: FaUser, color: 'text-blue-600' };
-            case 'femenino': return { icon: FaUser, color: 'text-pink-600' };
-            default: return { icon: FaUser, color: 'text-gray-600' };
-        }
     };
 
     const formatDate = (dateString) => {
@@ -307,14 +55,12 @@ const PersonalLista = ({
         });
     };
 
-    // Manejar click en fila
     const handleRowClick = (personaId, e) => {
         if (e.target.type === 'checkbox' ||
             e.target.closest('button') ||
             e.target.tagName === 'A') {
-            return; // No hacer nada si se hace click en checkbox, botón o enlace
+            return;
         }
-
         if (onSelect) {
             onSelect(personaId);
         }
@@ -322,240 +68,175 @@ const PersonalLista = ({
 
     if (loading) {
         return (
-            <div className="flex justify-center items-center py-12">
-                <FaSpinner className="animate-spin h-8 w-8 text-indigo-600" />
-                <span className="ml-3 text-gray-600">Cargando personal...</span>
+            <div className="p-20 flex flex-col items-center justify-center gap-4">
+                <Loader2 className="w-12 h-12 text-primary animate-spin" />
+                <p className="text-sm font-black text-slate-400 uppercase tracking-widest">Sincronizando Nómina...</p>
             </div>
         );
     }
 
     if (personal.length === 0) {
+        const EmptyIcon = getTipoIcon(tipo);
         return (
-            <div className="text-center py-12">
-                {tipo === 'docente' && <FaChalkboardTeacher className="h-16 w-16 text-gray-300 mx-auto mb-4" />}
-                {tipo === 'administrativo' && <FaUserTie className="h-16 w-16 text-gray-300 mx-auto mb-4" />}
-                {tipo === 'obrero' && <FaHardHat className="h-16 w-16 text-gray-300 mx-auto mb-4" />}
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    {tipo === 'docente' && 'No hay docentes registrados'}
-                    {tipo === 'administrativo' && 'No hay administrativos registrados'}
-                    {tipo === 'obrero' && 'No hay obreros registrados'}
-                </h3>
-                <p className="text-gray-500">Registra el primer personal para comenzar</p>
+            <div className="p-20 text-center flex flex-col items-center gap-6">
+                <div className="w-24 h-24 rounded-full bg-slate-50 flex items-center justify-center text-slate-300 ring-8 ring-slate-50/50">
+                    <EmptyIcon size={48} />
+                </div>
+                <div>
+                    <h3 className="text-xl font-black text-slate-800 uppercase tracking-tight">No hay {tipo}s</h3>
+                    <p className="text-slate-500 font-medium max-w-xs mx-auto mt-2">La base de datos de personal para esta categoría está vacía actualmente.</p>
+                </div>
             </div>
         );
     }
 
     return (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-            {/* Header de la tabla */}
-            <div className="grid grid-cols-12 gap-4 p-4 border-b bg-gray-50 text-sm font-medium text-gray-700">
-                <div className="col-span-1">ID</div>
-                <div className="col-span-3">Personal</div>
-                <div className="col-span-2">Contacto</div>
-                <div className="col-span-2">Información Laboral</div>
-                <div className="col-span-2">Detalles</div>
-                <div className="col-span-2">Acciones</div>
-            </div>
+        <div className="w-full">
+            <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                    <thead>
+                        <tr className="border-b border-slate-100">
+                            <th className="px-6 py-5 text-left w-12"></th>
+                            <th className="px-6 py-5 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Personal</th>
+                            <th className="px-6 py-5 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Contacto</th>
+                            <th className="px-6 py-5 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Laboral</th>
+                            <th className="px-6 py-5 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Detalles</th>
+                            <th className="px-6 py-5 text-right text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-50">
+                        <AnimatePresence mode="popLayout">
+                            {personal.map((persona, idx) => {
+                                const TipoIcon = getTipoIcon(persona.tipo);
+                                const tipoColors = getTipoColor(persona.tipo);
+                                const isSelected = selectedIds.includes(persona.id);
 
-            {/* Lista de personal */}
-            <div className="divide-y divide-gray-100">
-                {personal.map((persona) => {
-                    const TipoIcon = getTipoIcon(persona.tipo);
-                    const tipoColors = getTipoColor(persona.tipo);
-                    const sexoData = getSexoIcon(persona.sexo);
-                    const SexoIcon = sexoData.icon;
-                    const isSelected = selectedIds.includes(persona.id);
-
-                    return (
-                        <div
-                            key={persona.id}
-                            className={`grid grid-cols-12 gap-4 p-4 transition-all duration-200 cursor-pointer ${isSelected
-                                    ? 'bg-blue-50 border-l-4 border-l-blue-500'
-                                    : 'hover:bg-gray-50'
-                                }`}
-                            onClick={(e) => handleRowClick(persona.id, e)}
-                        >
-                            {/* ID */}
-                            <div className="col-span-1 flex items-center">
-                                <span className={`font-medium ${isSelected ? 'text-blue-600' : 'text-gray-600'}`}>
-                                    {persona.id}
-                                </span>
-                            </div>
-
-                            {/* Información del personal */}
-                            <div className="col-span-3">
-                                <div className="flex items-center space-x-3">
-                                    <div className={`p-2 rounded-lg ${tipoColors.bg} ${isSelected ? 'ring-2 ring-blue-300' : ''
-                                        }`}>
-                                        <TipoIcon className={`h-5 w-5 ${tipoColors.text}`} />
-                                    </div>
-                                    <div>
-                                        <p className={`font-medium ${isSelected ? 'text-blue-700' : 'text-gray-900'
-                                            }`}>
-                                            {persona.nombreCompleto}
-                                        </p>
-                                        <div className="flex items-center text-sm text-gray-500 mt-1">
-                                            <FaIdCard className="h-3 w-3 mr-1" />
-                                            <span>C.I.: {persona.cedula}</span>
-                                        </div>
-                                        <p className="text-xs text-gray-400 mt-1">
-                                            {persona.tipoLabel}
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Contacto */}
-                            <div className="col-span-2">
-                                <div className="space-y-1">
-                                    <div className="flex items-center text-sm">
-                                        <FaPhone className="h-3 w-3 text-gray-400 mr-2" />
-                                        <span className={`truncate ${isSelected ? 'text-blue-600' : 'text-gray-600'
-                                            }`}>
-                                            {persona.telefono}
-                                        </span>
-                                    </div>
-                                    <div className="flex items-center text-sm">
-                                        <FaEnvelope className="h-3 w-3 text-gray-400 mr-2" />
-                                        <span className={`truncate ${isSelected ? 'text-blue-600' : 'text-gray-600'
-                                            }`}>
-                                            {persona.correo}
-                                        </span>
-                                    </div>
-                                    <div className="flex items-center text-sm">
-                                        <SexoIcon className={`h-3 w-3 ${sexoData.color} mr-2`} />
-                                        <span className={`capitalize ${isSelected ? 'text-blue-600' : 'text-gray-600'
-                                            }`}>
-                                            {persona.sexo}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Información Laboral */}
-                            <div className="col-span-2">
-                                <div className="space-y-1">
-                                    <div className="flex items-center">
-                                        <FaBriefcase className="h-4 w-4 text-gray-400 mr-2" />
-                                        <span className={`text-sm truncate ${isSelected ? 'text-blue-700' : 'text-gray-900'
-                                            }`} title={persona.cargo_voucher}>
-                                            {persona.cargo_voucher}
-                                        </span>
-                                    </div>
-                                    <div className="flex items-center mt-2">
-                                        <FaBuilding className="h-4 w-4 text-gray-400 mr-2" />
-                                        <span className={`text-sm truncate ${isSelected ? 'text-blue-600' : 'text-gray-600'
-                                            }`} title={persona.dependencia}>
-                                            {persona.dependencia}
-                                        </span>
-                                    </div>
-                                    {persona.carga_horaria && (
-                                        <div className={`text-xs mt-2 ${isSelected ? 'text-blue-500' : 'text-gray-500'
-                                            }`}>
-                                            Carga: {persona.carga_horaria}
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Detalles */}
-                            <div className="col-span-2">
-                                <div className="space-y-2">
-                                    <div className="flex items-center text-sm">
-                                        <FaCalendar className="h-3 w-3 text-gray-400 mr-2" />
-                                        <div>
-                                            <div className={`${isSelected ? 'text-blue-700' : 'text-gray-900'
-                                                }`}>
-                                                {persona.edad} años
+                                return (
+                                    <motion.tr
+                                        key={persona.id}
+                                        initial={{ opacity: 0, x: -10 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        exit={{ opacity: 0, scale: 0.95 }}
+                                        transition={{ delay: idx * 0.03 }}
+                                        onClick={(e) => handleRowClick(persona.id, e)}
+                                        className={`group cursor-pointer transition-all duration-200 ${isSelected ? 'bg-primary/5 shadow-inner' : 'hover:bg-slate-50/80'}`}
+                                    >
+                                        <td className="px-6 py-4">
+                                            <div className={`w-6 h-6 rounded-lg border-2 transition-all flex items-center justify-center ${isSelected ? 'bg-primary border-primary text-white' : 'border-slate-200 group-hover:border-primary/50'}`}>
+                                                {isSelected && <CheckCircle2 size={14} />}
                                             </div>
-                                            <div className={`text-xs ${isSelected ? 'text-blue-500' : 'text-gray-500'
-                                                }`}>
-                                                Edad
-                                            </div>
-                                        </div>
-                                    </div>
-                                    {persona.antiguedad && (
-                                        <div className="flex items-center text-sm">
-                                            <FaCalendar className="h-3 w-3 text-gray-400 mr-2" />
-                                            <div>
-                                                <div className={`${isSelected ? 'text-blue-700' : 'text-gray-900'
-                                                    }`}>
-                                                    {persona.antiguedad} años
+                                        </td>
+                                        
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="flex items-center gap-4">
+                                                <div className={`w-11 h-11 rounded-2xl flex items-center justify-center ring-4 ring-white shadow-sm transition-transform group-hover:scale-110 ${tipoColors.bg} ${tipoColors.text}`}>
+                                                    <TipoIcon size={20} />
                                                 </div>
-                                                <div className={`text-xs ${isSelected ? 'text-blue-500' : 'text-gray-500'
-                                                    }`}>
-                                                    Antigüedad
+                                                <div>
+                                                    <div className={`text-sm font-black tracking-tight transition-colors ${isSelected ? 'text-primary' : 'text-slate-800'}`}>
+                                                        {persona.nombreCompleto}
+                                                    </div>
+                                                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase mt-0.5">
+                                                        <Fingerprint size={10} />
+                                                        {persona.cedula}
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    )}
-                                    {persona.fecha_ingreso_mppe && (
-                                        <div className={`text-xs mt-1 ${isSelected ? 'text-blue-500' : 'text-gray-500'
-                                            }`}>
-                                            Ingreso: {formatDate(persona.fecha_ingreso_mppe)}
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
+                                        </td>
 
-                            {/* Acciones */}
-                            <div className="col-span-2">
-                                <div className="flex items-center space-x-2">
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            onView?.(persona);
-                                        }}
-                                        className={`p-2 transition-colors cursor-pointer ${isSelected
-                                                ? 'text-blue-400 hover:text-blue-600'
-                                                : 'text-gray-400 hover:text-blue-600'
-                                            }`}
-                                        title="Ver detalles"
-                                    >
-                                        <FaEye className="h-4 w-4" />
-                                    </button>
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            onEdit?.(persona);
-                                        }}
-                                        className={`p-2 transition-colors cursor-pointer ${isSelected
-                                                ? 'text-blue-400 hover:text-blue-600'
-                                                : 'text-gray-400 hover:text-green-600'
-                                            }`}
-                                        title="Editar"
-                                    >
-                                        <FaEdit className="h-4 w-4" />
-                                    </button>
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            onDelete?.(persona.id);
-                                        }}
-                                        className={`p-2 transition-colors cursor-pointer ${isSelected
-                                                ? 'text-blue-400 hover:text-blue-600'
-                                                : 'text-gray-400 hover:text-red-600'
-                                            }`}
-                                        title="Eliminar"
-                                    >
-                                        <FaTrash className="h-4 w-4" />
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    );
-                })}
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="space-y-1">
+                                                <div className="flex items-center gap-2 text-xs font-bold text-slate-600">
+                                                    <Phone size={12} className="text-slate-300" />
+                                                    {persona.telefono}
+                                                </div>
+                                                <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400">
+                                                    <Mail size={12} className="text-slate-300" />
+                                                    {persona.correo}
+                                                </div>
+                                            </div>
+                                        </td>
+
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="space-y-1">
+                                                <div className="flex items-center gap-2">
+                                                    <Briefcase size={12} className="text-primary/60" />
+                                                    <span className="text-xs font-black text-slate-700 truncate max-w-[150px]" title={persona.cargo_voucher}>
+                                                        {persona.cargo_voucher}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <Building2 size={12} className="text-slate-300" />
+                                                    <span className="text-[10px] font-bold text-slate-400 truncate max-w-[150px]" title={persona.dependencia}>
+                                                        {persona.dependencia}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </td>
+
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="flex items-center gap-4">
+                                                <div className="text-center">
+                                                    <div className="text-xs font-black text-slate-700">{persona.edad}</div>
+                                                    <div className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Edad</div>
+                                                </div>
+                                                <div className="h-6 w-px bg-slate-100" />
+                                                <div className="text-center">
+                                                    <div className="text-xs font-black text-primary">{persona.antiguedad || 0}</div>
+                                                    <div className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Años</div>
+                                                </div>
+                                            </div>
+                                        </td>
+
+                                        <td className="px-6 py-4 text-right">
+                                            <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <motion.button
+                                                    whileHover={{ scale: 1.1 }}
+                                                    whileTap={{ scale: 0.9 }}
+                                                    onClick={(e) => { e.stopPropagation(); onView?.(persona); }}
+                                                    className="p-2 rounded-xl bg-white text-blue-500 shadow-sm border border-slate-100 hover:bg-blue-50 transition-colors"
+                                                    title="Ver Detalle"
+                                                >
+                                                    <Eye size={16} />
+                                                </motion.button>
+                                                <motion.button
+                                                    whileHover={{ scale: 1.1 }}
+                                                    whileTap={{ scale: 0.9 }}
+                                                    onClick={(e) => { e.stopPropagation(); onEdit?.(persona); }}
+                                                    className="p-2 rounded-xl bg-white text-emerald-500 shadow-sm border border-slate-100 hover:bg-emerald-50 transition-colors"
+                                                    title="Editar"
+                                                >
+                                                    <Edit3 size={16} />
+                                                </motion.button>
+                                                <motion.button
+                                                    whileHover={{ scale: 1.1 }}
+                                                    whileTap={{ scale: 0.9 }}
+                                                    onClick={(e) => { e.stopPropagation(); onDelete?.(persona.id); }}
+                                                    className="p-2 rounded-xl bg-white text-rose-500 shadow-sm border border-slate-100 hover:bg-rose-50 transition-colors"
+                                                    title="Eliminar"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </motion.button>
+                                            </div>
+                                        </td>
+                                    </motion.tr>
+                                );
+                            })}
+                        </AnimatePresence>
+                    </tbody>
+                </table>
             </div>
 
-            {/* Footer simple */}
-            <div className="p-4 border-t bg-gray-50">
-                <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">
-                        {personal.length} {tipo}{personal.length !== 1 ? 's' : ''} encontrado{personal.length !== 1 ? 's' : ''}
+            <div className="px-8 py-5 border-t border-slate-50 bg-slate-50/30 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">
+                        {personal.length} {tipo}s registrados
                     </span>
-                    <span className="text-sm text-gray-500">
-                        {new Date().toLocaleDateString('es-ES')}
-                    </span>
+                </div>
+                <div className="flex items-center gap-1.5 text-[10px] font-black text-slate-400 uppercase tracking-[0.1em]">
+                    <Clock size={12} />
+                    Sincronizado: {new Date().toLocaleTimeString()}
                 </div>
             </div>
         </div>

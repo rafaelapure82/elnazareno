@@ -1,23 +1,31 @@
 import React, { useState } from 'react';
-import { FaUserTie, FaExclamationTriangle } from 'react-icons/fa';
+import { 
+    UserCog, 
+    AlertCircle, 
+    RefreshCw, 
+    Users, 
+    ChevronRight,
+    Search,
+    FileSpreadsheet,
+    FileText,
+    Download
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { usePersonal } from '../hooks/usePersonal';
 import PersonalFormularioModal from '../componentes/PersonalFormularioModal';
 import PersonalLista from '../componentes/PersonalLista';
 import PersonalBuscar from '../componentes/PersonalBuscar';
 import PersonalAccion from '../componentes/PersonalAccion';
 import PersonalDetalleModal from '../componentes/PersonalDetalleModal';
-import Swal from 'sweetalert2'
-import html2pdf from 'html2pdf.js';
-import * as XLSX from 'xlsx';
+import Swal from 'sweetalert2';
 import { ExportacionService } from '../servicios/exportacion.service';
 
-const AdministrativoPage = () => {
+const AdministrativosPage = () => {
     const [showFormModal, setShowFormModal] = useState(false);
     const [selectedPersonal, setSelectedPersonal] = useState(null);
     const [showDetailModal, setShowDetailModal] = useState(false);
     const [selectedIds, setSelectedIds] = useState([]);
     const [editingPersonal, setEditingPersonal] = useState(null);
-
     const [loadingDetail, setLoadingDetail] = useState(false);
     const [detailError, setDetailError] = useState(null);
 
@@ -36,135 +44,58 @@ const AdministrativoPage = () => {
         actualizarFiltros
     } = usePersonal(tipo);
 
-    const getDatosParaExportar = () => {
-        if (selectedIds.length > 0) {
-            return personal.filter(p => selectedIds.includes(p.id));
-        }
-        return personal;
-    };
-
     const handleExportPDF = async () => {
         try {
-            // SOLO obtener datos completos si hay selección
-            let datosParaExportar;
-
-            if (selectedIds.length > 0) {
-                // console.log('Exportando PDF con selección:', selectedIds.length, 'IDs');
-                datosParaExportar = await ExportacionService.obtenerDatosCompletos(personal, selectedIds);
-            } else {
-                // console.log('Exportando PDF sin selección - usando datos de lista');
-                datosParaExportar = personal; // Usar datos de la lista actual
-            }
-
-            if (!datosParaExportar || datosParaExportar.length === 0) {
-                Swal.fire('Información', 'No hay datos para exportar', 'info');
-                return;
-            }
-
-            // console.log('Datos para PDF:', datosParaExportar.length, 'registros');
-
-            // Verificar que los datos tienen campos completos
-            // const primerRegistro = datosParaExportar[0];
-            // console.log('Campos en primer registro PDF:', Object.keys(primerRegistro));
-            // console.log('Ejemplo de datos completos:', {
-            //     tieneTitulos: !!primerRegistro.titulos_profesionales,
-            //     tieneTallas: !!(primerRegistro.talla_franela || primerRegistro.talla_pantalon || primerRegistro.talla_zapato),
-            //     tieneCodigos: !!(primerRegistro.codigo_cargo || primerRegistro.codigo_dependencia)
-            // });
-
-            await ExportacionService.exportarAPDF(datosParaExportar, tipo);
-
-            Swal.fire('Éxito', `PDF generado con ${datosParaExportar.length} registros completos`, 'success');
-
-        } catch (error) {
-            console.error('Error exportando PDF:', error);
-            Swal.fire('Error', `No se pudo generar el PDF: ${error.message}`, 'error');
-            throw error;
+            let datos = selectedIds.length > 0 
+                ? await ExportacionService.obtenerDatosCompletos(personal, selectedIds)
+                : personal;
+            if (!datos?.length) return Swal.fire('Info', 'No hay datos', 'info');
+            await ExportacionService.exportarAPDF(datos, tipo);
+            Swal.fire('Éxito', 'PDF generado', 'success');
+        } catch (e) {
+            Swal.fire('Error', e.message, 'error');
         }
     };
 
     const handleExportExcel = async () => {
         try {
-            // SOLO obtener datos completos si hay selección
-            let datosParaExportar;
-
-            if (selectedIds.length > 0) {
-                // console.log('Exportando Excel con selección:', selectedIds.length, 'IDs');
-                datosParaExportar = await ExportacionService.obtenerDatosCompletos(personal, selectedIds);
-            } else {
-                // console.log('Exportando Excel sin selección - usando datos de lista');
-                datosParaExportar = personal; // Usar datos de la lista actual
-            }
-
-            if (!datosParaExportar || datosParaExportar.length === 0) {
-                Swal.fire('Información', 'No hay datos para exportar', 'info');
-                return;
-            }
-
-            // console.log('Datos para Excel:', datosParaExportar.length, 'registros');
-
-            await ExportacionService.exportarAExcel(datosParaExportar, tipo);
-
-            Swal.fire('Éxito', `Excel generado con ${datosParaExportar.length} registros completos`, 'success');
-
-        } catch (error) {
-            console.error('Error exportando Excel:', error);
-            Swal.fire('Error', `No se pudo generar el Excel: ${error.message}`, 'error');
-            throw error;
+            let datos = selectedIds.length > 0 
+                ? await ExportacionService.obtenerDatosCompletos(personal, selectedIds)
+                : personal;
+            if (!datos?.length) return Swal.fire('Info', 'No hay datos', 'info');
+            await ExportacionService.exportarAExcel(datos, tipo);
+            Swal.fire('Éxito', 'Excel generado', 'success');
+        } catch (e) {
+            Swal.fire('Error', e.message, 'error');
         }
     };
 
-
-    // FUNCIÓN para exportar a CSV
     const handleExportCSV = async () => {
         try {
-            // Obtener datos COMPLETOS desde el endpoint
             const datos = await ExportacionService.obtenerDatosCompletos(personal, selectedIds);
-
-            if (datos.length === 0) {
-                Swal.fire('Información', 'No hay datos para exportar', 'info');
-                return;
-            }
-
             await ExportacionService.exportarACSV(datos, tipo);
-
-            Swal.fire('Éxito', `CSV generado con ${datos.length} registros`, 'success');
-
-        } catch (error) {
-            console.error('Error exportando CSV:', error);
-            Swal.fire('Error', `No se pudo generar el CSV: ${error.message}`, 'error');
-            throw error;
+            Swal.fire('Éxito', 'CSV generado', 'success');
+        } catch (e) {
+            Swal.fire('Error', e.message, 'error');
         }
     };
 
-    // FUNCIÓN para imprimir
     const handlePrint = async () => {
         try {
-            // Obtener datos COMPLETOS desde el endpoint
             const datos = await ExportacionService.obtenerDatosCompletos(personal, selectedIds);
-
-            if (datos.length === 0) {
-                Swal.fire('Información', 'No hay datos para imprimir', 'info');
-                return;
-            }
-
             await ExportacionService.imprimir(datos, tipo);
-
-        } catch (error) {
-            console.error('Error imprimiendo:', error);
-            Swal.fire('Error', `No se pudo abrir la vista de impresión: ${error.message}`, 'error');
-            throw error;
+        } catch (e) {
+            Swal.fire('Error', e.message, 'error');
         }
     };
-
-    //!# Funciones para editar 
 
     const handleCreate = async (data) => {
         try {
             await registrarPersonal(data);
             setShowFormModal(false);
-        } catch (error) {
-            alert(error.message);
+            Swal.fire('Éxito', 'Registrado correctamente', 'success');
+        } catch (e) {
+            Swal.fire('Error', e.message, 'error');
         }
     };
 
@@ -173,260 +104,145 @@ const AdministrativoPage = () => {
             await actualizarPersonal(editingPersonal.id, data);
             setShowFormModal(false);
             setEditingPersonal(null);
-        } catch (error) {
-            alert(error.message);
+            Swal.fire('Éxito', 'Actualizado correctamente', 'success');
+        } catch (e) {
+            Swal.fire('Error', e.message, 'error');
         }
     };
 
     const handleDelete = async (id) => {
-        Swal.fire({
-            title: `¿Estás seguro de eliminar este ${tipo}?`,
-            text: "¡No podrás revertir esto!",
-            icon: "warning",
+        const result = await Swal.fire({
+            title: '¿Eliminar registro?',
+            text: 'Esta acción no se puede deshacer.',
+            icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: "#3085d6",
-            cancelButtonColor: "#d33",
-            cancelButtonText: "Cancelar",
-            confirmButtonText: "Si, eliminar!"
-        }).then(async (result) => {
-            if (result.isConfirmed) {
-                try {
-                    await eliminarPersonal(id);
-                    setSelectedIds(prev => prev.filter(selectedId => selectedId !== id));
-                    Swal.fire({
-                        title: "Eliminado!",
-                        text: `El ${tipo} ha sido eliminado`,
-                        icon: "success"
-                    });
-                } catch (error) {
-                    Swal.fire({
-                        title: "Error",
-                        text: `Error:${error.message}`,
-                        icon: "error"
-                    });
-
-                }
-            }
+            confirmButtonColor: '#f43f5e',
+            confirmButtonText: 'Sí, eliminar'
         });
 
+        if (result.isConfirmed) {
+            try {
+                await eliminarPersonal(id);
+                setSelectedIds(prev => prev.filter(sid => sid !== id));
+                Swal.fire('Eliminado', 'El registro ha sido borrado', 'success');
+            } catch (e) {
+                Swal.fire('Error', e.message, 'error');
+            }
+        }
     };
 
     const handleDeleteSelected = async () => {
-        if (selectedIds.length === 0) {
-            alert('Selecciona al menos un docente para eliminar');
-            return;
-        }
-
-        Swal.fire({
-            title: `¿Estás seguro de eliminar ${selectedIds.length} ${tipo}(s)?`,
-            text: "¡No podrás revertir esto!",
-            icon: "warning",
+        const result = await Swal.fire({
+            title: `¿Eliminar ${selectedIds.length} registros?`,
+            icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: "#3085d6",
-            cancelButtonColor: "#d33",
-            cancelButtonText: "Cancelar",
-            confirmButtonText: "Si, eliminar!"
-        }).then(async (result) => {
-            if (result.isConfirmed) {
-                try {
-                    for (const id of selectedIds) {
-                        await eliminarPersonal(id);
-                    }
-                    setSelectedIds([]);
-                    Swal.fire({
-                        title: "Eliminado!",
-                        text: `El ${tipo} ha sido eliminado`,
-                        icon: "success"
-                    });
-                } catch (error) {
-                    Swal.fire({
-                        title: "Error",
-                        text: `Error:${error.message}`,
-                        icon: "error"
-                    });
-
-                }
-            }
+            confirmButtonColor: '#f43f5e'
         });
 
-    };
-
-    const handleSelectPersonal = (id) => {
-        setSelectedIds(prev => {
-            if (prev.includes(id)) {
-                return prev.filter(selectedId => selectedId !== id);
-            } else {
-                return [...prev, id];
+        if (result.isConfirmed) {
+            try {
+                for (const id of selectedIds) await eliminarPersonal(id);
+                setSelectedIds([]);
+                Swal.fire('Eliminados', 'Registros borrados con éxito', 'success');
+            } catch (e) {
+                Swal.fire('Error', e.message, 'error');
             }
-        });
+        }
     };
 
-    const handleViewPersonal = async (personal) => {
+    const handleViewPersonal = async (p) => {
         setLoadingDetail(true);
-        setDetailError(null);
         setShowDetailModal(true);
-
         try {
-            // Cargar datos completos desde la API
-            const personalCompleto = await obtenerPersonalPorId(personal.id);
-            setSelectedPersonal(personalCompleto);
-        } catch (error) {
-            console.error('Error cargando detalles:', error);
-            setDetailError(error.message);
-            // Si falla, al menos mostrar los datos básicos
-            setSelectedPersonal(personal);
+            const full = await obtenerPersonalPorId(p.id);
+            setSelectedPersonal(full);
+        } catch (e) {
+            setDetailError(e.message);
+            setSelectedPersonal(p);
         } finally {
             setLoadingDetail(false);
         }
     };
 
-    const handleEditPersonal = (personal) => {
-        setEditingPersonal({
-            id: personal.id,
-            tipo: personal.tipo
-        });
+    const handleEditPersonal = (p) => {
+        setEditingPersonal({ id: p.id, tipo: p.tipo });
         setShowFormModal(true);
     };
-
-    const handleExport = () => {
-        // Exportar a CSV
-        const headers = ['ID', 'Nombre', 'Cédula', 'Teléfono', 'Correo', 'Cargo', 'Dependencia', 'Fecha Ingreso'];
-        const csvData = personal.map(p => [
-            p.id,
-            p.nombreCompleto,
-            p.cedula,
-            p.telefono,
-            p.correo,
-            p.cargo_voucher,
-            p.dependencia,
-            p.fecha_ingreso_mppe
-        ]);
-
-        const csvContent = [
-            headers.join(','),
-            ...csvData.map(row => row.join(','))
-        ].join('\n');
-
-        const blob = new Blob([csvContent], { type: 'text/csv' });
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = 'docentes.csv';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    };
-
-    // Función para cerrar el modal
-    const handleCloseDetailModal = () => {
-        setShowDetailModal(false);
-        setSelectedPersonal(null);
-        setDetailError(null);
-    };
-
-
-
-    if (error) {
-        return (
-            <div className="p-6">
-                <div className="max-w-7xl mx-auto">
-                    <div className="bg-red-50 border border-red-200 rounded-xl p-6">
-                        <div className="flex items-center">
-                            <FaExclamationTriangle className="h-6 w-6 text-red-600 mr-3" />
-                            <div>
-                                <h3 className="text-lg font-medium text-red-800">Error</h3>
-                                <p className="text-red-700">{error}</p>
-                                <button
-                                    onClick={cargarPersonal}
-                                    className="mt-4 px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
-                                >
-                                    Reintentar
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
-    }
 
     const stats = {
         total: personal.length,
         masculinos: personal.filter(p => p.sexo === 'masculino').length,
-        femeninos: personal.filter(p => p.sexo === 'femenino').length,
-        otros: personal.filter(p => p.sexo === 'otro').length
+        femeninos: personal.filter(p => p.sexo === 'femenino').length
     };
 
+    if (error) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6">
+                <div className="w-20 h-20 rounded-full bg-rose-50 flex items-center justify-center text-rose-500 ring-8 ring-rose-50/50">
+                    <AlertCircle size={40} />
+                </div>
+                <div className="text-center">
+                    <h3 className="text-xl font-black text-slate-800 uppercase tracking-tight">Error de Conexión</h3>
+                    <p className="text-slate-500 font-medium mt-2">{error}</p>
+                </div>
+                <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={cargarPersonal}
+                    className="flex items-center gap-2 px-8 py-3 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest"
+                >
+                    <RefreshCw size={16} />
+                    Reintentar
+                </motion.button>
+            </div>
+        );
+    }
+
     return (
-        <div className="p-6">
-            <div className="max-w-7xl mx-auto">
-                {/* Header */}
-                <div className="mb-8">
-                    <div className="flex items-center mb-4">
-                        <FaUserTie className="h-8 w-8 text-green-600 mr-3" />
-                        <div>
-                            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
-                                Gestión de Personal Administrativo
-                            </h1>
-                            <p className="text-gray-600 mt-1">
-                                Administra el registro de personal administrativo
-                            </p>
+        <div className="max-w-[1600px] mx-auto space-y-10 pb-20">
+            {/* Header Section */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 px-4">
+                <div className="space-y-4">
+                    <div className="flex items-center gap-3 text-primary">
+                        <div className="p-3 bg-primary/10 rounded-2xl">
+                            <UserCog size={32} />
                         </div>
+                        <div className="h-px w-12 bg-primary/20" />
+                        <span className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">Administrativos</span>
                     </div>
-
-                    {/* Estadísticas */}
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                        <div className="bg-white rounded-lg border border-gray-200 p-4">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
-                                    <div className="text-sm text-gray-600">Total Administrativos</div>
-                                </div>
-                                <FaUserTie className="h-8 w-8 text-green-400" />
-                            </div>
-                        </div>
-
-                        <div className="bg-white rounded-lg border border-gray-200 p-4">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <div className="text-2xl font-bold text-blue-600">{stats.masculinos}</div>
-                                    <div className="text-sm text-gray-600">Masculinos</div>
-                                </div>
-                                <FaUserTie className="h-8 w-8 text-blue-400" />
-                            </div>
-                        </div>
-
-                        <div className="bg-white rounded-lg border border-gray-200 p-4">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <div className="text-2xl font-bold text-pink-600">{stats.femeninos}</div>
-                                    <div className="text-sm text-gray-600">Femeninos</div>
-                                </div>
-                                <FaUserTie className="h-8 w-8 text-pink-400" />
-                            </div>
-                        </div>
-
-                        {/* <div className="bg-white rounded-lg border border-gray-200 p-4">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <div className="text-2xl font-bold text-gray-600">{stats.otros}</div>
-                                    <div className="text-sm text-gray-600">Otros</div>
-                                </div>
-                                <FaUserTie className="h-8 w-8 text-gray-400" />
-                            </div>
-                        </div> */}
-                    </div>
-
+                    <h1 className="text-4xl md:text-6xl font-black text-slate-900 tracking-tight">
+                        Gestión de <span className="text-primary">Personal</span>
+                    </h1>
+                    <p className="text-slate-500 font-medium text-lg max-w-2xl">
+                        Control centralizado de la nómina administrativa, registros laborales y expedientes del personal.
+                    </p>
                 </div>
 
+                <div className="flex items-center gap-4 bg-white/50 backdrop-blur-xl p-2 rounded-3xl border border-white shadow-xl shadow-slate-200/50">
+                    <div className="px-8 py-4 text-center">
+                        <div className="text-3xl font-black text-slate-900">{stats.total}</div>
+                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total</div>
+                    </div>
+                    <div className="w-px h-12 bg-slate-100" />
+                    <div className="px-8 py-4 text-center">
+                        <div className="text-3xl font-black text-blue-500">{stats.masculinos}</div>
+                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Masc.</div>
+                    </div>
+                    <div className="w-px h-12 bg-slate-100" />
+                    <div className="px-8 py-4 text-center">
+                        <div className="text-3xl font-black text-pink-500">{stats.femeninos}</div>
+                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Fem.</div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Actions & Filters */}
+            <div className="px-4 space-y-6">
                 <PersonalAccion
                     personal={personal}
                     tipo={tipo}
                     selectedIds={selectedIds}
-                    onAddClick={() => {
-                        setEditingPersonal(null);
-                        setShowFormModal(true);
-                    }}
+                    onAddClick={() => { setEditingPersonal(null); setShowFormModal(true); }}
                     onDeleteSelected={handleDeleteSelected}
                     onExportPDF={handleExportPDF}
                     onExportExcel={handleExportExcel}
@@ -436,16 +252,20 @@ const AdministrativoPage = () => {
                     totalCount={personal.length}
                 />
 
-
-                {/* Búsqueda y filtros */}
                 <PersonalBuscar
                     tipo={tipo}
                     onFilterChange={actualizarFiltros}
                     filters={filters}
                     totalPersonal={personal.length}
                 />
+            </div>
 
-                {/* Lista de personal */}
+            {/* Main Content Card */}
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mx-4 bg-white/70 backdrop-blur-2xl rounded-[2.5rem] border border-white shadow-2xl shadow-slate-200/60 overflow-hidden"
+            >
                 <PersonalLista
                     personal={personal}
                     loading={loading}
@@ -453,35 +273,31 @@ const AdministrativoPage = () => {
                     onEdit={handleEditPersonal}
                     onDelete={handleDelete}
                     onView={handleViewPersonal}
-                    onSelect={handleSelectPersonal}
+                    onSelect={(id) => setSelectedIds(prev => prev.includes(id) ? prev.filter(sid => sid !== id) : [...prev, id])}
                     selectedIds={selectedIds}
                 />
+            </motion.div>
 
-                {/* Modales */}
-                <PersonalFormularioModal
-                    isOpen={showFormModal}
-                    onClose={() => {
-                        setShowFormModal(false);
-                        setEditingPersonal(null);
-                    }}
-                    onSubmit={editingPersonal ? handleEdit : handleCreate}
-                    initialData={editingPersonal}
-                    tipo={tipo}
-                    title={editingPersonal ? `Editar ${tipo}` : `Nuevo ${tipo}`}
-                />
+            {/* Modals */}
+            <PersonalFormularioModal
+                isOpen={showFormModal}
+                onClose={() => { setShowFormModal(false); setEditingPersonal(null); }}
+                onSubmit={editingPersonal ? handleEdit : handleCreate}
+                initialData={editingPersonal}
+                tipo={tipo}
+                title={editingPersonal ? `Editar ${tipo}` : `Nuevo ${tipo}`}
+            />
 
-                <PersonalDetalleModal
-                    personal={selectedPersonal}
-                    isOpen={showDetailModal}
-                    onClose={handleCloseDetailModal}
-                    tipo={tipo}
-                    loading={loadingDetail}
-                    error={detailError}
-                />
-
-            </div>
+            <PersonalDetalleModal
+                personal={selectedPersonal}
+                isOpen={showDetailModal}
+                onClose={() => { setShowDetailModal(false); setSelectedPersonal(null); setDetailError(null); }}
+                tipo={tipo}
+                loading={loadingDetail}
+                error={detailError}
+            />
         </div>
     );
 };
 
-export default AdministrativoPage;
+export default AdministrativosPage;

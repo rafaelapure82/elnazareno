@@ -115,7 +115,7 @@ import React from 'react';
 // export default LoginHeader;
 
 
-import logoEscuela from '../logo/81535605-3fa7-4771-bf44-9726cd915f1c-removebg-preview.png'; // Ajusta la ruta
+import logoEscuela from '../logo/logoEscuela.png'; // Ajusta la ruta
 
 const LoginHeader = ({ titulo = 'Sistema Escolar', subtitulo = 'Iniciar Sesión' }) => {
     return (
@@ -128,14 +128,14 @@ const LoginHeader = ({ titulo = 'Sistema Escolar', subtitulo = 'Iniciar Sesión'
                                   group-hover:from-blue-400/50 group-hover:to-indigo-400/50 transition-all duration-500">
                     </div>
 
-                    {/* Contenedor del logo */}
-                    <div className="relative bg-gradient-to-r from-blue-100 to-indigo-100 p-6 rounded-2xl shadow-lg 
-              border border-blue-200 transform group-hover:scale-110 group-hover:rotate-2 
-              transition-all duration-300">
+                    {/* Contenedor del logo circular */}
+                    <div className="relative bg-white p-2 rounded-full shadow-xl 
+              border-4 border-blue-50 transform group-hover:scale-110 group-hover:rotate-2 
+              transition-all duration-300 overflow-hidden flex items-center justify-center">
                         <img
                             src={logoEscuela}
                             alt="Logo Sistema Escolar"
-                            className="w-32 h-32 md:w-40 md:h-40 object-contain filter drop-shadow-md"
+                            className="w-32 h-32 md:w-40 md:h-40 object-cover rounded-full"
                             loading="lazy"
                         />
                     </div>

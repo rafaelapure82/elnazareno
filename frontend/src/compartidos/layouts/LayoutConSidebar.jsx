@@ -1,104 +1,85 @@
 import { useState, useEffect } from "react";
 import { Sidebar } from "../componentes/Sidebar";
 import { Outlet } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 
 const LayoutConSidebar = () => {
     const [sidebarOpen, setSidebarOpen] = useState(true);
     const [isMobile, setIsMobile] = useState(false);
 
-    // Detectar si es móvil
     useEffect(() => {
         const checkIsMobile = () => {
-            setIsMobile(window.innerWidth < 768);
-            if (window.innerWidth < 768) {
-                setSidebarOpen(false);
-            }
+            const mobile = window.innerWidth < 768;
+            setIsMobile(mobile);
+            if (mobile) setSidebarOpen(false);
+            else setSidebarOpen(true);
         };
 
         checkIsMobile();
         window.addEventListener('resize', checkIsMobile);
-
         return () => window.removeEventListener('resize', checkIsMobile);
     }, []);
 
-    // Función para alternar sidebar
-    const toggleSidebar = () => {
-        setSidebarOpen(!sidebarOpen);
-    };
-
-    // Cerrar sidebar en móvil al hacer clic fuera
-    const handleContentClick = () => {
-        if (isMobile && sidebarOpen) {
-            setSidebarOpen(false);
-        }
-    };
-
     return (
-        <div className="flex min-h-screen bg-gray-50">
-            {/* Overlay para móvil */}
-            {isMobile && sidebarOpen && (
-                <div
-                    className="fixed inset-0 bg-black bg-opacity-50 z-30"
-                    onClick={() => setSidebarOpen(false)}
-                />
-            )}
+        <div className="min-h-screen bg-[#f8fafc] text-slate-900 selection:bg-primary/20 selection:text-primary relative overflow-hidden flex">
+            {/* Background Decorative Blobs (Apple Style) */}
+            <div className="fixed inset-0 z-0 pointer-events-none">
+                <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-100/40 rounded-full blur-[120px] animate-pulse"></div>
+                <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-purple-100/40 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '2s' }}></div>
+                <div className="absolute top-[20%] left-[10%] w-[30%] h-[30%] bg-pink-50/30 rounded-full blur-[100px]"></div>
+            </div>
 
-            {/* Sidebar */}
-            <Sidebar
-                sidebarOpen={sidebarOpen}
-                setSidebarOpen={setSidebarOpen}
+            {/* Sidebar Component */}
+            <Sidebar 
+                sidebarOpen={sidebarOpen} 
+                setSidebarOpen={setSidebarOpen} 
             />
 
-            {/* Contenido principal */}
-            <div
+            {/* Main Content Area */}
+            <main 
                 className={`
-          flex-1 transition-all duration-300
-          ${sidebarOpen && !isMobile ? "md:ml-64" : "md:ml-20"}
-          min-h-screen
-        `}
-                onClick={handleContentClick}
+                    flex-1 transition-all duration-500 ease-in-out z-10 relative
+                    ${isMobile ? "ml-0" : sidebarOpen ? "ml-[280px]" : "ml-[100px]"}
+                    p-4 md:p-8
+                `}
             >
-                {/* Botón para abrir sidebar en móvil */}
+                {/* Mobile Header Button */}
                 {isMobile && !sidebarOpen && (
-                    <button
-                        onClick={toggleSidebar}
-                        className="fixed top-4 left-4 z-20 p-2 bg-blue-600 text-white rounded-lg shadow-lg md:hidden"
+                    <motion.button
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        onClick={() => setSidebarOpen(true)}
+                        className="fixed top-6 left-6 z-[60] w-12 h-12 glass-card rounded-2xl flex items-center justify-center text-primary shadow-lg"
                     >
-                        ☰
-                    </button>
+                        <span className="text-2xl">☰</span>
+                    </motion.button>
                 )}
 
-                {/* Header fijo (opcional) */}
-                <header className="sticky top-0 z-10 bg-white shadow-sm md:hidden">
-                    <div className="px-4 py-3">
-                        <div className="flex items-center justify-between">
-                            <h1 className="text-lg font-semibold text-gray-800">
-                                Sistema Escolar
-                            </h1>
-                            <button
-                                onClick={toggleSidebar}
-                                className="p-2 rounded-lg hover:bg-gray-100"
-                            >
-                                {sidebarOpen ? "✕" : "☰"}
-                            </button>
+                {/* Page Content Wrapper with Transition */}
+                <AnimatePresence mode="wait">
+                    <motion.div
+                        key={window.location.pathname}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.3 }}
+                        className="max-w-7xl mx-auto"
+                    >
+                        <Outlet />
+                    </motion.div>
+                </AnimatePresence>
+
+                {/* Simplified Footer */}
+                <footer className="mt-20 py-8 border-t border-slate-200/50">
+                    <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-slate-400 text-sm font-medium">
+                        <p>© {new Date().getFullYear()} CEIB El Nazareno - Sistema de Gestión Escolar</p>
+                        <div className="flex gap-6">
+                            <span className="hover:text-primary transition-colors cursor-help">Soporte Técnico</span>
+                            <span className="hover:text-primary transition-colors cursor-help">Documentación</span>
                         </div>
                     </div>
-                </header>
-
-                {/* Contenido de la página */}
-                <main className="p-4 md:p-6">
-                    <div className="max-w-7xl mx-auto">
-                        <Outlet />
-                    </div>
-                </main>
-
-                {/* Footer (opcional) */}
-                <footer className="mt-auto border-t bg-white p-4">
-                    <div className="text-center text-gray-500 text-sm">
-                        © {new Date().getFullYear()} Sistema Escolar. Todos los derechos reservados.
-                    </div>
                 </footer>
-            </div>
+            </main>
         </div>
     );
 };

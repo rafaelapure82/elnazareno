@@ -1,107 +1,15 @@
-// import React, { useState, useEffect } from 'react';
-// import { FaPlus, FaSchool } from 'react-icons/fa';
-// import GradoForm from '../componentes/Grados/GradoForm';
-// import GradoList from '../componentes/Grados/GradoList';
-// import { useSecciones } from '../hooks/useSecciones';
-
-// const GradosPage = () => {
-//     const [showForm, setShowForm] = useState(false);
-//     const [editingGrado, setEditingGrado] = useState(null);
-//     const {
-//         grados,
-//         loading,
-//         obtenerGrados,
-//         crearGrado,
-//         actualizarGrado,
-//         eliminarGrado
-//     } = useSecciones();
-//     useEffect(() => {
-//         obtenerGrados();
-//     }, [obtenerGrados]);
-
-//     const handleCreate = async (gradoData) => {
-//         if (editingGrado) {
-//             await actualizarGrado(editingGrado.id, gradoData);
-//         } else {
-//             await crearGrado(gradoData);
-//         }
-//         setShowForm(false);
-//         setEditingGrado(null);
-//     };
-
-//     const handleEdit = (grado) => {
-//         setEditingGrado(grado);
-//         setShowForm(true);
-//     };
-
-//     const handleDelete = async (grado) => {
-//         await eliminarGrado(grado.id);
-//     };
-
-//     return (
-//         <div className="container mx-auto px-4 py-8">
-//             <div className="flex justify-between items-center mb-8">
-//                 <div className="flex items-center">
-//                     <FaSchool className="text-4xl text-blue-600 mr-4" />
-//                     <div>
-//                         <h1 className="text-3xl font-bold text-gray-800">Gestión de Grados</h1>
-//                         <p className="text-gray-600">Administre los grados académicos de la institución</p>
-//                     </div>
-//                 </div>
-//                 <button
-//                     onClick={() => setShowForm(true)}
-//                     className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center"
-//                 >
-//                     <FaPlus className="mr-2" />
-//                     Nuevo Grado
-//                 </button>
-//             </div>
-
-//             {showForm && (
-//                 <div className="mb-8">
-//                     <div className="bg-gray-50 p-4 rounded-lg mb-4">
-//                         <h2 className="text-xl font-bold text-gray-800">
-//                             {editingGrado ? 'Editar Grado' : 'Nuevo Grado'}
-//                         </h2>
-//                     </div>
-//                     <GradoForm
-//                         onSubmit={handleCreate}
-//                         onCancel={() => {
-//                             setShowForm(false);
-//                             setEditingGrado(null);
-//                         }}
-//                         initialData={editingGrado}
-//                     />
-//                 </div>
-//             )}
-
-//             <div className="bg-white rounded-lg shadow">
-//                 <div className="p-6">
-//                     <h2 className="text-xl font-bold text-gray-800 mb-4">Lista de Grados</h2>
-//                     {loading ? (
-//                         <div className="text-center py-8">
-//                             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-//                             <p className="mt-2 text-gray-600">Cargando grados...</p>
-//                         </div>
-//                     ) : (
-//                         <GradoList
-//                             grados={grados}
-//                             onEdit={handleEdit}
-//                             onDelete={handleDelete}
-//                         />
-//                     )}
-//                 </div>
-//             </div>
-//         </div>
-//     );
-// };
-
-// export default GradosPage;
-
-
-
 import React, { useState, useEffect } from 'react';
-import { FaPlus, FaSchool } from 'react-icons/fa';
+import { 
+    School, 
+    Plus, 
+    ArrowRight, 
+    LayoutGrid, 
+    BookOpen,
+    Loader2,
+    AlertCircle,
+    RefreshCw
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import GradoForm from '../componentes/Grados/GradoForm';
 import GradoList from '../componentes/Grados/GradoList';
 import { useSecciones } from '../hooks/useSecciones';
@@ -119,20 +27,12 @@ const GradosPage = () => {
     } = useSecciones();
 
     useEffect(() => {
-        console.log("Grados en estado:", grados); // Debug
-        console.log("Loading:", loading); // Debug
-    }, [grados, loading]);
-
-    useEffect(() => {
-        // Cargar grados solo si no están cargados
         if (grados.length === 0 && !loading) {
-            console.log("Cargando grados..."); // Debug
             obtenerGrados();
         }
     }, [grados.length, loading, obtenerGrados]);
 
     const handleCreate = async (gradoData) => {
-        console.log("Creando grado:", gradoData); // Debug
         if (editingGrado) {
             await actualizarGrado(editingGrado.id, gradoData);
         } else {
@@ -143,69 +43,113 @@ const GradosPage = () => {
     };
 
     const handleEdit = (grado) => {
-        console.log("Editando grado:", grado); // Debug
         setEditingGrado(grado);
         setShowForm(true);
     };
 
     const handleDelete = async (grado) => {
-        console.log("Eliminando grado:", grado.id); // Debug
         await eliminarGrado(grado.id);
     };
 
     return (
-        <div className="container mx-auto px-4 py-8">
-            <div className="flex justify-between items-center mb-8">
-                <div className="flex items-center">
-                    <FaSchool className="text-4xl text-blue-600 mr-4" />
-                    <div>
-                        <h1 className="text-3xl font-bold text-gray-800">Gestión de Grados</h1>
-                        <p className="text-gray-600">Administre los grados académicos de la institución</p>
+        <div className="max-w-[1600px] mx-auto space-y-10 pb-20">
+            {/* Header Section */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 px-4 pt-4">
+                <div className="space-y-4">
+                    <div className="flex items-center gap-3 text-primary">
+                        <div className="p-3 bg-primary/10 rounded-2xl">
+                            <School size={32} />
+                        </div>
+                        <div className="h-px w-12 bg-primary/20" />
+                        <span className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">Institución</span>
                     </div>
+                    <motion.h1 
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="text-4xl md:text-6xl font-black text-slate-900 tracking-tight"
+                    >
+                        Gestión de <span className="text-primary">Grados</span>
+                    </motion.h1>
+                    <p className="text-slate-500 font-medium text-lg max-w-2xl">
+                        Administre los niveles académicos, grados y la estructura educativa de la institución.
+                    </p>
                 </div>
-                <button
+
+                <motion.button
+                    whileHover={{ scale: 1.05, y: -2 }}
+                    whileTap={{ scale: 0.95 }}
                     onClick={() => setShowForm(true)}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center"
+                    className="group flex items-center gap-3 px-8 py-4 bg-slate-900 text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] shadow-2xl shadow-slate-200"
                 >
-                    <FaPlus className="mr-2" />
-                    Nuevo Grado
-                </button>
+                    <Plus size={18} className="text-primary group-hover:rotate-90 transition-transform duration-300" />
+                    <span>Nuevo Grado</span>
+                </motion.button>
             </div>
 
-            {showForm && (
-                <div className="mb-8">
-                    <div className="bg-gray-50 p-4 rounded-lg mb-4">
-                        <h2 className="text-xl font-bold text-gray-800">
-                            {editingGrado ? 'Editar Grado' : 'Nuevo Grado'}
-                        </h2>
-                    </div>
-                    <GradoForm
-                        onSubmit={handleCreate}
-                        onCancel={() => {
-                            setShowForm(false);
-                            setEditingGrado(null);
-                        }}
-                        initialData={editingGrado}
-                    />
-                </div>
-            )}
-
-            <div className="bg-white rounded-lg shadow">
-                <div className="p-6">
-                    <h2 className="text-xl font-bold text-gray-800 mb-4">Lista de Grados</h2>
-                    {loading && grados.length === 0 ? (
-                        <div className="text-center py-8">
-                            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                            <p className="mt-2 text-gray-600">Cargando grados...</p>
-                        </div>
-                    ) : (
-                        <GradoList
-                            grados={grados}
-                            onEdit={handleEdit}
-                            onDelete={handleDelete}
-                        />
+            <div className="px-4">
+                <AnimatePresence>
+                    {showForm && (
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: -20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: -20 }}
+                            className="mb-10 bg-white/50 backdrop-blur-xl rounded-[2rem] border border-white p-8 shadow-xl"
+                        >
+                            <div className="flex items-center gap-4 mb-8">
+                                <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+                                    <LayoutGrid size={24} />
+                                </div>
+                                <div>
+                                    <h2 className="text-xl font-black text-slate-800 uppercase tracking-tight">
+                                        {editingGrado ? 'Editar Grado Académico' : 'Crear Nuevo Grado'}
+                                    </h2>
+                                    <p className="text-sm font-bold text-slate-400">Complete los detalles para organizar la estructura escolar.</p>
+                                </div>
+                            </div>
+                            <GradoForm
+                                onSubmit={handleCreate}
+                                onCancel={() => {
+                                    setShowForm(false);
+                                    setEditingGrado(null);
+                                }}
+                                initialData={editingGrado}
+                            />
+                        </motion.div>
                     )}
-                </div>
+                </AnimatePresence>
+
+                {/* Main Content Area */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-white/70 backdrop-blur-2xl rounded-[2.5rem] border border-white shadow-2xl shadow-slate-200/60 overflow-hidden"
+                >
+                    <div className="px-8 py-6 border-b border-slate-50 flex items-center justify-between bg-slate-50/30">
+                        <div className="flex items-center gap-3">
+                            <BookOpen size={20} className="text-slate-400" />
+                            <h2 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.25em]">Estructura Institucional</h2>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                            <span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">{grados.length} Grados Activos</span>
+                        </div>
+                    </div>
+
+                    <div className="p-4">
+                        {loading && grados.length === 0 ? (
+                            <div className="py-20 flex flex-col items-center justify-center gap-4">
+                                <Loader2 className="w-12 h-12 text-primary animate-spin" />
+                                <p className="text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Cargando Niveles...</p>
+                            </div>
+                        ) : (
+                            <GradoList
+                                grados={grados}
+                                onEdit={handleEdit}
+                                onDelete={handleDelete}
+                            />
+                        )}
+                    </div>
+                </motion.div>
             </div>
         </div>
     );

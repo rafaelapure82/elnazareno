@@ -217,120 +217,104 @@
 
 
 import React from 'react';
-import { FaMale, FaFemale, FaUsers, FaChartBar, FaQuestionCircle } from 'react-icons/fa';
+import { 
+  Users, 
+  UserCircle2, 
+  Activity, 
+  PieChart,
+  UserRound,
+  UserRoundCheck
+} from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const EstadisticasEstudiantes = ({ estadisticas, loading }) => {
     if (loading) {
         return (
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-                {[...Array(4)].map((_, i) => (
-                    <div key={i} className="bg-white shadow rounded-lg p-6 animate-pulse">
-                        <div className="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
-                        <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                {[...Array(3)].map((_, i) => (
+                    <div key={i} className="glass-card h-32 rounded-[32px] animate-pulse overflow-hidden relative">
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer" />
                     </div>
                 ))}
             </div>
         );
     }
 
-    const { total, masculinos, femeninos, otros } = estadisticas;
+    const { total = 0, masculinos = 0, femeninos = 0 } = estadisticas || {};
     const porcentajeMasculino = total > 0 ? ((masculinos / total) * 100).toFixed(1) : 0;
     const porcentajeFemenino = total > 0 ? ((femeninos / total) * 100).toFixed(1) : 0;
-    const porcentajeOtros = total > 0 ? ((otros / total) * 100).toFixed(1) : 0;
 
-    const estadisticasItems = [
+    const items = [
         {
-            label: 'Total Estudiantes',
+            label: 'Población Total',
             value: total,
-            icon: FaUsers,
-            color: 'blue',
-            bgColor: 'bg-blue-50',
-            textColor: 'text-blue-600',
-            borderColor: 'border-blue-500'
+            icon: Users,
+            color: 'from-indigo-500 to-purple-600',
+            shadow: 'shadow-indigo-200',
+            desc: 'Estudiantes inscritos'
         },
         {
             label: 'Masculinos',
             value: masculinos,
             porcentaje: porcentajeMasculino,
-            icon: FaMale,
-            color: 'blue',
-            bgColor: 'bg-blue-50',
-            textColor: 'text-blue-600',
-            borderColor: 'border-blue-400'
+            icon: UserRound,
+            color: 'from-blue-500 to-cyan-500',
+            shadow: 'shadow-blue-200',
+            desc: 'Alumnos varones'
         },
         {
             label: 'Femeninos',
             value: femeninos,
             porcentaje: porcentajeFemenino,
-            icon: FaFemale,
-            color: 'pink',
-            bgColor: 'bg-pink-50',
-            textColor: 'text-pink-600',
-            borderColor: 'border-pink-400'
-        },
-        // {
-        //     label: 'Otros',
-        //     value: otros,
-        //     porcentaje: porcentajeOtros,
-        //     icon: FaQuestionCircle,
-        //     color: 'purple',
-        //     bgColor: 'bg-purple-50',
-        //     textColor: 'text-purple-600',
-        //     borderColor: 'border-purple-400'
-        // }
+            icon: UserRoundCheck,
+            color: 'from-rose-500 to-pink-500',
+            shadow: 'shadow-rose-200',
+            desc: 'Alumnas mujeres'
+        }
     ];
 
     return (
-        <div className="mb-8">
-            <div className="flex items-center mb-6">
-                <div className="flex-shrink-0 bg-gradient-to-r from-blue-500 to-blue-600 p-2 rounded-lg">
-                    <FaChartBar className="h-5 w-5 text-white" />
-                </div>
-                <div className="ml-3">
-                    <h3 className="text-lg font-semibold text-gray-900">Estadísticas por Género</h3>
-                    <p className="text-sm text-gray-500">Distribución total de estudiantes registrados</p>
-                </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                {estadisticasItems.map((item, index) => (
-                    <div
-                        key={index}
-                        className={`bg-white rounded-xl border-l-4 ${item.borderColor} shadow-sm p-5 hover:shadow-md transition-shadow duration-200`}
-                    >
-                        <div className="flex items-center justify-between mb-3">
-                            <div className={`p-2 rounded-lg ${item.bgColor}`}>
-                                <item.icon className={`h-5 w-5 ${item.textColor}`} />
-                            </div>
-                            {item.porcentaje !== undefined && (
-                                <span className={`text-sm font-medium ${item.textColor}`}>
-                                    {item.porcentaje}%
-                                </span>
-                            )}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            {items.map((item, index) => (
+                <motion.div
+                    key={index}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: index * 0.1 }}
+                    whileHover={{ y: -5 }}
+                    className="glass-card p-6 rounded-[32px] border-white/40 flex flex-col justify-between group"
+                >
+                    <div className="flex justify-between items-start mb-4">
+                        <div className={`p-3.5 rounded-2xl bg-gradient-to-br ${item.color} text-white shadow-lg ${item.shadow} group-hover:scale-110 transition-transform`}>
+                            <item.icon size={24} />
                         </div>
-
-                        <div>
-                            <p className="text-sm font-medium text-gray-500 truncate">{item.label}</p>
-                            <p className="mt-1 text-2xl font-bold text-gray-900">{item.value}</p>
-                        </div>
-
                         {item.porcentaje !== undefined && (
-                            <div className="mt-3">
-                                <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
-                                    <span>Progreso</span>
-                                    <span>{item.porcentaje}%</span>
-                                </div>
-                                <div className="w-full bg-gray-200 rounded-full h-2">
-                                    <div
-                                        className={`h-2 rounded-full ${item.bgColor.replace('bg-', 'bg-').replace('-50', '-500')}`}
-                                        style={{ width: `${item.porcentaje}%` }}
-                                    ></div>
-                                </div>
+                            <div className="bg-white/60 backdrop-blur-md border border-white/50 px-3 py-1 rounded-full">
+                                <span className="text-[10px] font-black text-slate-900 uppercase tracking-widest">{item.porcentaje}%</span>
                             </div>
                         )}
                     </div>
-                ))}
-            </div>
+
+                    <div>
+                        <div className="flex items-baseline gap-2">
+                            <h3 className="text-3xl font-black text-slate-800 tracking-tighter">{item.value}</h3>
+                            <span className="text-xs font-bold text-slate-400 uppercase tracking-[0.1em]">{item.desc}</span>
+                        </div>
+                        <p className="text-[10px] font-black text-primary mt-1 uppercase tracking-[0.2em]">{item.label}</p>
+                    </div>
+
+                    {item.porcentaje !== undefined && (
+                        <div className="mt-4 w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                            <motion.div 
+                                initial={{ width: 0 }}
+                                animate={{ width: `${item.porcentaje}%` }}
+                                transition={{ duration: 1, ease: "easeOut" }}
+                                className={`h-full bg-gradient-to-r ${item.color}`}
+                            />
+                        </div>
+                    )}
+                </motion.div>
+            ))}
         </div>
     );
 };

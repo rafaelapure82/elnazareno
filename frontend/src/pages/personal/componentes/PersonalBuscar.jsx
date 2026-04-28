@@ -1,8 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
-    FaSearch, FaFilter, FaSort, FaUser, FaVenusMars,
-    FaCalendarAlt, FaBriefcase, FaBuilding, FaTimes
-} from 'react-icons/fa';
+    Search,
+    Filter,
+    X,
+    Users,
+    Calendar,
+    ChevronDown,
+    Briefcase,
+    ArrowUpDown,
+    Clock,
+    UserCircle2
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const PersonalBuscar = ({
     onFilterChange,
@@ -11,6 +20,7 @@ const PersonalBuscar = ({
     tipo
 }) => {
     const [searchQuery, setSearchQuery] = useState(filters.searchQuery || '');
+    const [isExpanded, setIsExpanded] = useState(false);
     const [localFilters, setLocalFilters] = useState({
         sexo: filters.sexo || 'todos',
         edadMin: filters.edadMin || '',
@@ -21,40 +31,22 @@ const PersonalBuscar = ({
         order: filters.order || 'asc'
     });
 
-    // Debounce para búsqueda
     useEffect(() => {
         const timer = setTimeout(() => {
-            onFilterChange({ searchQuery });
+            onFilterChange({ ...localFilters, searchQuery });
         }, 500);
-
         return () => clearTimeout(timer);
-    }, [searchQuery, onFilterChange]);
+    }, [searchQuery]);
 
-    const handleFilterChange = (key, value) => {
+    const handleFilterChange = useCallback((key, value) => {
         const newFilters = { ...localFilters, [key]: value };
         setLocalFilters(newFilters);
-        onFilterChange(newFilters);
-    };
+        onFilterChange({ ...newFilters, searchQuery });
+    }, [localFilters, searchQuery, onFilterChange]);
 
-    const sexos = [
-        { value: 'todos', label: 'Todos los sexos' },
-        { value: 'masculino', label: 'Masculino' },
-        { value: 'femenino', label: 'Femenino' },
-        { value: 'otro', label: 'Otro' }
-    ];
-
-    const sortOptions = [
-        { value: 'nombreCompleto', label: 'Nombre' },
-        { value: 'cedula', label: 'Cédula' },
-        { value: 'edad', label: 'Edad' },
-        { value: 'antiguedad', label: 'Antigüedad' },
-        { value: 'cargo_voucher', label: 'Cargo' },
-        { value: 'fecha_ingreso_mppe', label: 'Fecha de ingreso' }
-    ];
-
-    const clearFilters = () => {
+    const clearFilters = useCallback(() => {
         setSearchQuery('');
-        setLocalFilters({
+        const defaults = {
             sexo: 'todos',
             edadMin: '',
             edadMax: '',
@@ -62,27 +54,19 @@ const PersonalBuscar = ({
             antiguedadMax: '',
             sortBy: 'nombreCompleto',
             order: 'asc'
-        });
-        onFilterChange({
-            searchQuery: '',
-            sexo: 'todos',
-            edadMin: '',
-            edadMax: '',
-            antiguedadMin: '',
-            antiguedadMax: '',
-            sortBy: 'nombreCompleto',
-            order: 'asc'
-        });
-    };
+        };
+        setLocalFilters(defaults);
+        onFilterChange({ ...defaults, searchQuery: '' });
+    }, [onFilterChange]);
 
-    const hasActiveFilters = () => {
+    const hasActiveFilters = useMemo(() => {
         return searchQuery ||
             localFilters.sexo !== 'todos' ||
             localFilters.edadMin ||
             localFilters.edadMax ||
             localFilters.antiguedadMin ||
             localFilters.antiguedadMax;
-    };
+    }, [searchQuery, localFilters]);
 
     const getTipoLabel = () => {
         switch (tipo) {
@@ -94,175 +78,179 @@ const PersonalBuscar = ({
     };
 
     return (
-        <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
-            <div className="flex flex-col lg:flex-row lg:items-center lg:space-x-6 space-y-4 lg:space-y-0">
-                {/* Barra de búsqueda */}
-                <div className="flex-1">
-                    <div className="relative">
-                        <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-                        <input
-                            type="text"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            placeholder={`Buscar ${getTipoLabel()} por nombre, cédula, cargo o dependencia...`}
-                            className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                        />
-                    </div>
+        <div className="w-full mb-8">
+            <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3">
+                <div className="relative flex-1 group">
+                    <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors" size={20} />
+                    <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder={`Buscar ${getTipoLabel()} por nombre, cédula o cargo...`}
+                        className="w-full pl-14 pr-12 py-4 bg-white/60 backdrop-blur-xl border border-white/50 rounded-2xl font-bold text-slate-700 shadow-sm focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary/30 transition-all outline-none placeholder:text-slate-300"
+                    />
+                    <AnimatePresence>
+                        {searchQuery && (
+                            <motion.button 
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.8 }}
+                                onClick={() => setSearchQuery('')} 
+                                className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 transition-colors"
+                            >
+                                <X size={16} />
+                            </motion.button>
+                        )}
+                    </AnimatePresence>
                 </div>
 
-                {/* Filtros */}
-                <div className="flex flex-wrap gap-4">
-                    {/* Filtro por sexo */}
-                    <div className="relative">
-                        <FaVenusMars className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                        <select
-                            value={localFilters.sexo}
-                            onChange={(e) => handleFilterChange('sexo', e.target.value)}
-                            className="pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent appearance-none bg-white"
-                        >
-                            {sexos.map(sexo => (
-                                <option key={sexo.value} value={sexo.value}>
-                                    {sexo.label}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-
-                    {/* Filtro por edad mínima */}
-                    <div className="relative">
-                        <FaCalendarAlt className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                        <input
-                            type="number"
-                            min="18"
-                            max="80"
-                            value={localFilters.edadMin}
-                            onChange={(e) => handleFilterChange('edadMin', e.target.value)}
-                            placeholder="Edad mín"
-                            className="pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent w-24"
-                        />
-                    </div>
-
-                    {/* Filtro por edad máxima */}
-                    <div className="relative">
-                        <FaCalendarAlt className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                        <input
-                            type="number"
-                            min="18"
-                            max="80"
-                            value={localFilters.edadMax}
-                            onChange={(e) => handleFilterChange('edadMax', e.target.value)}
-                            placeholder="Edad máx"
-                            className="pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent w-24"
-                        />
-                    </div>
-
-                    {/* Filtro por antigüedad mínima */}
-                    <div className="relative">
-                        <FaBriefcase className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                        <input
-                            type="number"
-                            min="0"
-                            max="50"
-                            value={localFilters.antiguedadMin}
-                            onChange={(e) => handleFilterChange('antiguedadMin', e.target.value)}
-                            placeholder="Ant. mín"
-                            className="pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent w-24"
-                        />
-                    </div>
-
-                    {/* Filtro por antigüedad máxima */}
-                    <div className="relative">
-                        <FaBriefcase className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                        <input
-                            type="number"
-                            min="0"
-                            max="50"
-                            value={localFilters.antiguedadMax}
-                            onChange={(e) => handleFilterChange('antiguedadMax', e.target.value)}
-                            placeholder="Ant. máx"
-                            className="pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent w-24"
-                        />
-                    </div>
-                </div>
+                <motion.button
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setIsExpanded(!isExpanded)}
+                    className={`flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] transition-all shadow-sm ${isExpanded ? 'bg-slate-800 text-white' : 'bg-white text-slate-600 border border-slate-100 hover:border-slate-200'}`}
+                >
+                    <Filter size={16} className={isExpanded ? 'text-primary' : 'text-slate-400'} />
+                    <span>Filtros</span>
+                    <ChevronDown size={14} className={`transition-transform duration-500 ease-out ${isExpanded ? 'rotate-180' : ''}`} />
+                </motion.button>
             </div>
 
-            {/* Filtros adicionales */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-6 space-y-4 sm:space-y-0 mt-4">
-                {/* Ordenar por */}
-                <div className="flex items-center space-x-4">
-                    <div className="relative">
-                        <FaSort className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                        <select
-                            value={localFilters.sortBy}
-                            onChange={(e) => handleFilterChange('sortBy', e.target.value)}
-                            className="pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent appearance-none bg-white"
-                        >
-                            {sortOptions.map(opt => (
-                                <option key={opt.value} value={opt.value}>
-                                    {opt.label}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-
-                    {/* Orden ascendente/descendente */}
-                    <button
-                        onClick={() => handleFilterChange('order', localFilters.order === 'desc' ? 'asc' : 'desc')}
-                        className="px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center"
-                        title={localFilters.order === 'desc' ? 'Orden descendente' : 'Orden ascendente'}
+            <AnimatePresence>
+                {isExpanded && (
+                    <motion.div
+                        initial={{ height: 0, opacity: 0, y: -10 }}
+                        animate={{ height: 'auto', opacity: 1, y: 0 }}
+                        exit={{ height: 0, opacity: 0, y: -10 }}
+                        transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+                        className="overflow-hidden"
                     >
-                        {localFilters.order === 'desc' ? '↓' : '↑'}
-                    </button>
-                </div>
+                        <div className="pt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 pb-2">
+                            {/* Sex Filter */}
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-2 flex items-center gap-2">
+                                    <Users size={12} /> Sexo
+                                </label>
+                                <div className="relative group">
+                                    <select
+                                        value={localFilters.sexo}
+                                        onChange={(e) => handleFilterChange('sexo', e.target.value)}
+                                        className="w-full pl-5 pr-10 py-3.5 bg-white border border-slate-100 rounded-2xl font-bold text-sm text-slate-700 outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary/20 appearance-none transition-all cursor-pointer group-hover:border-slate-200"
+                                    >
+                                        <option value="todos">Todos los sexos</option>
+                                        <option value="masculino">Masculino</option>
+                                        <option value="femenino">Femenino</option>
+                                        <option value="otro">Otro</option>
+                                    </select>
+                                    <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none group-hover:text-primary transition-colors" />
+                                </div>
+                            </div>
 
-                {/* Limpiar filtros */}
-                {hasActiveFilters() && (
-                    <button
-                        onClick={clearFilters}
-                        className="px-4 py-3 border border-red-300 text-red-700 rounded-lg hover:bg-red-50 transition-colors flex items-center"
-                    >
-                        <FaTimes className="h-4 w-4 mr-1" />
-                        Limpiar filtros
-                    </button>
-                )}
-            </div>
+                            {/* Age Range */}
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-2 flex items-center gap-2">
+                                    <Calendar size={12} /> Rango de Edad
+                                </label>
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        type="number"
+                                        placeholder="Mín"
+                                        value={localFilters.edadMin}
+                                        onChange={(e) => handleFilterChange('edadMin', e.target.value)}
+                                        className="w-full px-5 py-3.5 bg-white border border-slate-100 rounded-2xl font-bold text-sm text-slate-700 outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary/20 transition-all hover:border-slate-200"
+                                    />
+                                    <span className="text-slate-300 font-black text-xl">-</span>
+                                    <input
+                                        type="number"
+                                        placeholder="Máx"
+                                        value={localFilters.edadMax}
+                                        onChange={(e) => handleFilterChange('edadMax', e.target.value)}
+                                        className="w-full px-5 py-3.5 bg-white border border-slate-100 rounded-2xl font-bold text-sm text-slate-700 outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary/20 transition-all hover:border-slate-200"
+                                    />
+                                </div>
+                            </div>
 
-            {/* Info de filtros activos y total */}
-            <div className="mt-4">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div className="text-sm text-gray-600">
-                        <span className="font-medium">{totalPersonal}</span> {getTipoLabel()} encontrado{totalPersonal !== 1 ? 's' : ''}
-                    </div>
+                            {/* Tenure Range */}
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-2 flex items-center gap-2">
+                                    <Briefcase size={12} /> Antigüedad
+                                </label>
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        type="number"
+                                        placeholder="Mín"
+                                        value={localFilters.antiguedadMin}
+                                        onChange={(e) => handleFilterChange('antiguedadMin', e.target.value)}
+                                        className="w-full px-5 py-3.5 bg-white border border-slate-100 rounded-2xl font-bold text-sm text-slate-700 outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary/20 transition-all hover:border-slate-200"
+                                    />
+                                    <span className="text-slate-300 font-black text-xl">-</span>
+                                    <input
+                                        type="number"
+                                        placeholder="Máx"
+                                        value={localFilters.antiguedadMax}
+                                        onChange={(e) => handleFilterChange('antiguedadMax', e.target.value)}
+                                        className="w-full px-5 py-3.5 bg-white border border-slate-100 rounded-2xl font-bold text-sm text-slate-700 outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary/20 transition-all hover:border-slate-200"
+                                    />
+                                </div>
+                            </div>
 
-                    {hasActiveFilters() && (
-                        <div className="flex flex-wrap gap-2">
-                            {searchQuery && (
-                                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800">
-                                    Búsqueda: "{searchQuery}"
-                                </span>
-                            )}
-                            {localFilters.sexo !== 'todos' && (
-                                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-green-100 text-green-800">
-                                    <FaVenusMars className="h-3 w-3 mr-1" />
-                                    {sexos.find(s => s.value === localFilters.sexo)?.label}
-                                </span>
-                            )}
-                            {(localFilters.edadMin || localFilters.edadMax) && (
-                                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-purple-100 text-purple-800">
-                                    <FaCalendarAlt className="h-3 w-3 mr-1" />
-                                    Edad: {localFilters.edadMin || '18'}-{localFilters.edadMax || '80'} años
-                                </span>
-                            )}
-                            {(localFilters.antiguedadMin || localFilters.antiguedadMax) && (
-                                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-orange-100 text-orange-800">
-                                    <FaBriefcase className="h-3 w-3 mr-1" />
-                                    Antigüedad: {localFilters.antiguedadMin || '0'}-{localFilters.antiguedadMax || '50'} años
-                                </span>
-                            )}
+                            {/* Sort By */}
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-2 flex items-center gap-2">
+                                    <ArrowUpDown size={12} /> Ordenar por
+                                </label>
+                                <div className="flex items-center gap-2">
+                                    <div className="relative flex-1 group">
+                                        <select
+                                            value={localFilters.sortBy}
+                                            onChange={(e) => handleFilterChange('sortBy', e.target.value)}
+                                            className="w-full pl-5 pr-10 py-3.5 bg-white border border-slate-100 rounded-2xl font-bold text-sm text-slate-700 outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary/20 appearance-none transition-all cursor-pointer group-hover:border-slate-200"
+                                        >
+                                            <option value="nombreCompleto">Nombre</option>
+                                            <option value="cedula">Cédula</option>
+                                            <option value="edad">Edad</option>
+                                            <option value="antiguedad">Antigüedad</option>
+                                            <option value="cargo_voucher">Cargo</option>
+                                        </select>
+                                        <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none group-hover:text-primary transition-colors" />
+                                    </div>
+                                    <motion.button
+                                        whileTap={{ scale: 0.9 }}
+                                        onClick={() => handleFilterChange('order', localFilters.order === 'desc' ? 'asc' : 'desc')}
+                                        className="p-3.5 bg-white border border-slate-100 rounded-2xl text-primary hover:border-primary/30 transition-all shadow-sm"
+                                    >
+                                        <ArrowUpDown size={16} className={localFilters.order === 'desc' ? 'rotate-180' : ''} />
+                                    </motion.button>
+                                </div>
+                            </div>
                         </div>
-                    )}
-                </div>
-            </div>
+
+                        <div className="flex flex-wrap items-center justify-between mt-8 pb-4 border-t border-slate-50 pt-6 gap-4">
+                            <div className="flex flex-wrap items-center gap-3">
+                                <AnimatePresence>
+                                    {hasActiveFilters && (
+                                        <motion.button 
+                                            initial={{ opacity: 0, x: -10 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            exit={{ opacity: 0, x: -10 }}
+                                            onClick={clearFilters}
+                                            className="px-4 py-2 rounded-xl bg-rose-50 text-rose-500 border border-rose-100 text-[10px] font-black uppercase tracking-[0.15em] hover:bg-rose-500 hover:text-white transition-all shadow-sm"
+                                        >
+                                            Limpiar Filtros
+                                        </motion.button>
+                                    )}
+                                </AnimatePresence>
+                            </div>
+                            
+                            <div className="bg-primary/5 px-5 py-2.5 rounded-2xl border border-primary/10 flex items-center gap-2">
+                                <UserCircle2 size={14} className="text-primary" />
+                                <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">
+                                    Resultados: <span className="text-primary text-sm ml-1 font-black">{totalPersonal}</span>
+                                </p>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };

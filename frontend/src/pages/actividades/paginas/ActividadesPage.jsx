@@ -1,23 +1,31 @@
-// modules/actividades/paginas/ActividadesPage.jsx
 import React, { useState, useEffect } from 'react';
+import { 
+    Calendar, 
+    Plus, 
+    Search, 
+    Filter, 
+    LayoutGrid, 
+    List, 
+    Clock, 
+    Image as ImageIcon,
+    ChevronLeft,
+    ChevronRight,
+    Loader2,
+    Settings2,
+    Trash2,
+    Edit3,
+    Eye,
+    TrendingUp,
+    CheckCircle2,
+    X,
+    ArrowLeft
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useActividades } from '../hooks/useActividades';
 import ActividadesList from '../componentes/ActividadesList';
 import ActividadForm from '../componentes/ActividadForm';
 import ActividadDetalle from '../componentes/ActividadDetalle';
-import LoadingSpinner from '../../../compartidos/componentes/LoadingSpinner';
-import {
-    FaPlus,
-    FaList,
-    FaSearch,
-    FaTimes,
-    FaFilter,
-    FaSortAmountDown,
-    FaSortAmountUp,
-    FaEye,
-    FaEdit,
-    FaTrash
-} from 'react-icons/fa';
-import Swal from 'sweetalert2'
+import Swal from 'sweetalert2';
 
 const ActividadesPage = () => {
     const {
@@ -28,602 +36,373 @@ const ActividadesPage = () => {
         paginacion,
         obtenerActividades,
         obtenerActividadPorId,
-        buscarActividades,
         crearActividad,
         eliminarActividad,
         editarActividad,
         cambiarPagina,
         limpiarBusqueda,
-        limpiarActividadActual,
-        setError
+        limpiarActividadActual
     } = useActividades();
 
-
     const [modo, setModo] = useState('lista'); // 'lista', 'crear', 'editar', 'detalle'
-    // const [actividadSeleccionada, setActividadSeleccionada] = useState(null);
     const [terminoBusqueda, setTerminoBusqueda] = useState('');
-    const [orden, setOrden] = useState('desc'); // 'asc' o 'desc'
-    const [filtro, setFiltro] = useState('todos'); // 'todos', 'conImagenes', 'sinImagenes'
+    const [orden, setOrden] = useState('desc');
+    const [filtro, setFiltro] = useState('todos');
 
-    // Cargar actividades al inicio
     useEffect(() => {
         obtenerActividades();
     }, []);
 
-    // Efecto para limpiar actividad seleccionada cuando cambia el modo
-    // useEffect(() => {
-    //     if (modo !== 'detalle' && actividadActual) {
-    //         // setActividadSeleccionada(null);
-    //         limpiarActividadActual();
-
-    //     }
-    //     // obtenerActividades()
-    // }, [modo]);
-
-
-
     const handleCrear = async (data) => {
-        const resultado = await crearActividad(
-            data.titulo,
-            data.descripcion,
-            data.imagenes
-        );
-
+        const resultado = await crearActividad(data.titulo, data.descripcion, data.imagenes);
         if (resultado.success) {
             setModo('lista');
-            // Opcional: Mostrar mensaje de éxito
-            Swal.fire({
-                title: "Actividad creada exitosamente",
-                icon: "success",
-            });
-        } else {
-            // El error ya está manejado en el hook
+            Swal.fire({ title: "Actividad creada", icon: "success", customClass: { popup: 'rounded-[2rem]' } });
         }
     };
 
     const handleEditar = async (data) => {
-        const resultado = await editarActividad(
-            data.id,
-            data.titulo,
-            data.descripcion,
-            data.nuevasImagenes,
-            data.imagenesAEliminar
-        );
-
+        const resultado = await editarActividad(data.id, data.titulo, data.descripcion, data.nuevasImagenes, data.imagenesAEliminar);
         if (resultado.success) {
             setModo('lista');
-            // setActividadSeleccionada(null);
-            Swal.fire({
-                title: "Actividad actualizada exitosamente",
-                icon: "success",
-            });
+            Swal.fire({ title: "Actividad actualizada", icon: "success", customClass: { popup: 'rounded-[2rem]' } });
         }
     };
 
     const handleEliminar = async (id) => {
-
-        Swal.fire({
-            title: "¿Estás seguro de eliminar esta actividad?",
-            text: "¡No podrás revertir esto!",
+        const result = await Swal.fire({
+            title: "¿Eliminar actividad?",
+            text: "Esta acción no se puede revertir.",
             icon: "warning",
             showCancelButton: true,
-            confirmButtonColor: "#3085d6",
-            cancelButtonColor: "#d33",
-            cancelButtonText: "Cancelar",
-            confirmButtonText: "Si, eliminarlo!",
-        }).then(async (result) => {
-            if (result.isConfirmed) {
-                const resultado = await eliminarActividad(id);
-                if (resultado.success) {
-                    Swal.fire({
-                        title: "Eliminado!",
-                        text: "La actividad ha sido eliminado",
-                        icon: "success"
-                    });
-                }
-            }
-
+            confirmButtonColor: "#f43f5e",
+            confirmButtonText: "Sí, eliminar"
         });
 
-
-        // if (window.confirm('¿Estás seguro de eliminar esta actividad? sssss')) {
-        //     const resultado = await eliminarActividad(id);
-        //     if (resultado.success) {
-        //         alert('Actividad eliminada exitosamente');
-        //     }
-        // }
+        if (result.isConfirmed) {
+            const resultado = await eliminarActividad(id);
+            if (resultado.success) {
+                Swal.fire('Eliminado', 'La actividad ha sido borrada', 'success');
+            }
+        }
     };
 
     const handleVerDetalle = async (id) => {
         const resultado = await obtenerActividadPorId(id);
-        if (resultado.success) {
-            // setActividadSeleccionada(resultado.data);
-            setModo('detalle');
-        }
+        if (resultado.success) setModo('detalle');
     };
 
     const handleEditarActividad = async (actividad) => {
-        // setActividadSeleccionada(actividad);
-        // setModo('editar');
-
         const resultado = await obtenerActividadPorId(actividad.id);
-        if (resultado.success) {
-            setModo("editar");
-        }
-    };
-
-    const handleBuscar = (e) => {
-        e.preventDefault();
-        if (terminoBusqueda.trim()) {
-            buscarActividades(terminoBusqueda);
-        } else {
-            limpiarBusqueda();
-        }
-    };
-
-    const limpiarFiltros = () => {
-        setTerminoBusqueda('');
-        setOrden('desc');
-        setFiltro('todos');
-        limpiarBusqueda();
+        if (resultado.success) setModo("editar");
     };
 
     const actividadesFiltradas = actividades.filter(actividad => {
-        // Filtrar por término de búsqueda
         if (terminoBusqueda) {
             const termino = terminoBusqueda.toLowerCase();
-            const titulo = actividad.titulo?.toLowerCase() || '';
-            const descripcion = actividad.descripcion?.toLowerCase() || '';
-
-            if (!titulo.includes(termino) && !descripcion.includes(termino)) {
-                return false;
-            }
+            if (!actividad.titulo?.toLowerCase().includes(termino) && !actividad.descripcion?.toLowerCase().includes(termino)) return false;
         }
-
-        // Filtrar por tipo de imágenes
-        if (filtro === 'conImagenes' && (!actividad.imagenes || actividad.imagenes.length === 0)) {
-            return false;
-        }
-        if (filtro === 'sinImagenes' && actividad.imagenes && actividad.imagenes.length > 0) {
-            return false;
-        }
-
+        if (filtro === 'conImagenes' && (!actividad.imagenes || actividad.imagenes.length === 0)) return false;
+        if (filtro === 'sinImagenes' && actividad.imagenes && actividad.imagenes.length > 0) return false;
         return true;
-    });
-
-    // Ordenar actividades
-    const actividadesOrdenadas = [...actividadesFiltradas].sort((a, b) => {
+    }).sort((a, b) => {
         const fechaA = new Date(a.fechaCreacion);
         const fechaB = new Date(b.fechaCreacion);
-
-        return orden === 'asc'
-            ? fechaA - fechaB
-            : fechaB - fechaA;
+        return orden === 'asc' ? fechaA - fechaB : fechaB - fechaA;
     });
 
     const handleCambiarPagina = (nuevaPagina) => {
         cambiarPagina(nuevaPagina);
-        // Scroll al inicio de la página
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    // Renderizar contenido según el modo
-    const renderContenido = () => {
-        switch (modo) {
-            case 'crear':
-                return (
-                    <div className="bg-white rounded-xl shadow-lg p-6">
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-2xl font-bold text-gray-800">
-                                Crear Nueva Actividad
-                            </h2>
-                            <button
-                                onClick={() => setModo('lista')}
-                                className="px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-lg transition-colors cursor-pointer"
-                            >
-                                Volver a la lista
-                            </button>
+    return (
+        <div className="max-w-[1600px] mx-auto space-y-10 pb-20">
+            {/* Header Section */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 px-4 pt-4">
+                <div className="space-y-4">
+                    <div className="flex items-center gap-3 text-primary">
+                        <div className="p-3 bg-primary/10 rounded-2xl">
+                            <Calendar size={32} />
                         </div>
-                        <ActividadForm
-                            onSubmit={handleCrear}
-                            onCancel={() => setModo('lista')}
-                            cargando={cargando}
-                        />
+                        <div className="h-px w-12 bg-primary/20" />
+                        <span className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">Cronograma</span>
                     </div>
-                );
+                    <h1 className="text-4xl md:text-6xl font-black text-slate-900 tracking-tight">
+                        Actividades <span className="text-primary">Escolares</span>
+                    </h1>
+                    <p className="text-slate-500 font-medium text-lg max-w-2xl">
+                        Gestión de eventos, noticias y actividades institucionales con soporte multimedia.
+                    </p>
+                </div>
 
-            case 'editar':
-                return (
-                    <div className="bg-white rounded-xl shadow-lg p-6">
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-2xl font-bold text-gray-800">
-                                Editar Actividad
-                            </h2>
-                            <button
-                                onClick={() => setModo('lista')}
-                                className="px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-lg transition-colors cursor-pointer"
-                            >
-                                Volver a la lista
-                            </button>
+                <div className="flex flex-wrap items-center gap-4">
+                    <div className="bg-white/50 backdrop-blur-xl px-6 py-4 rounded-3xl border border-white shadow-xl shadow-slate-200/50 flex items-center gap-6">
+                        <div className="text-center">
+                            <div className="text-2xl font-black text-slate-900">{actividades.length}</div>
+                            <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Total</div>
                         </div>
-                        {actividadActual ? (
-                            <ActividadForm
-                                actividad={actividadActual}
-                                onSubmit={handleEditar}
-                                onCancel={() => setModo('lista')}
-                                cargando={cargando}
-                            />
-                        ) : (
-                            <div className="text-center py-12">
-                                <p className="text-gray-500">No se encontró la actividad</p>
-                            </div>
-                        )}
-                    </div>
-                );
-
-            case 'detalle':
-                return (
-                    <div className="space-y-6">
-                        <div className="flex items-center justify-between">
-                            <h2 className="text-2xl font-bold text-gray-800">
-                                Detalle de Actividad
-                            </h2>
-                            <button
-                                onClick={() => setModo('lista')}
-                                className="px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-lg transition-colors cursor-pointer"
-                            >
-                                Volver a la lista
-                            </button>
+                        <div className="w-px h-8 bg-slate-100" />
+                        <div className="text-center">
+                            <div className="text-2xl font-black text-primary">{actividades.filter(a => a.imagenes?.length > 0).length}</div>
+                            <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Multimedia</div>
                         </div>
-                        {actividadActual ? (
-                            <ActividadDetalle
-                                actividad={actividadActual}
-                                // onEdit={(act) => {
-                                //     setActividadSeleccionada(act);
-                                //     setModo('editar');
-                                // }}
-                                onEdit={() => setModo('editar')}
-                                onDelete={handleEliminar}
-                                puedeEditar={true}
-                            />
-                        ) : (
-                            <div className="bg-white rounded-xl shadow-lg p-12 text-center">
-                                <p className="text-gray-500">Cargando detalles...</p>
-                            </div>
-                        )}
                     </div>
-                );
 
-            case 'lista':
-            default:
-                return (
-                    <div className="space-y-6">
-                        {/* Header con estadísticas */}
-                        <div className="bg-white rounded-xl shadow-lg p-6">
-                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                                <div>
-                                    <h1 className="text-2xl font-bold text-gray-800 mb-2">
-                                        Actividades
-                                    </h1>
-                                    <p className="text-gray-600">
-                                        {actividades.length} actividad{actividades.length !== 1 ? 'es' : ''} en total
-                                    </p>
-                                </div>
-                                <div className="flex flex-wrap gap-3">
+                    <motion.button
+                        whileHover={{ scale: 1.05, y: -2 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setModo('crear')}
+                        className="group flex items-center gap-3 px-8 py-4 bg-slate-900 text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] shadow-2xl shadow-slate-200"
+                    >
+                        <Plus size={18} className="text-primary group-hover:rotate-90 transition-transform duration-300" />
+                        <span>Nueva Actividad</span>
+                    </motion.button>
+                </div>
+            </div>
+
+            <div className="px-4">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    {/* Sidebar / Navigation */}
+                    <div className="lg:col-span-3 space-y-6">
+                        <div className="bg-white/70 backdrop-blur-xl p-6 rounded-[2rem] border border-white shadow-xl">
+                            <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.25em] mb-6 px-2">Navegación</h3>
+                            <div className="space-y-2">
+                                <button
+                                    onClick={() => setModo('lista')}
+                                    className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl font-bold transition-all ${modo === 'lista' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-500 hover:bg-slate-50'}`}
+                                >
+                                    <List size={18} />
+                                    <span>Lista General</span>
+                                </button>
+                                <button
+                                    onClick={() => setModo('crear')}
+                                    className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl font-bold transition-all ${modo === 'crear' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-500 hover:bg-slate-50'}`}
+                                >
+                                    <Plus size={18} />
+                                    <span>Crear Nueva</span>
+                                </button>
+                                {modo === 'detalle' && (
                                     <button
-                                        onClick={() => setModo('crear')}
-                                        className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center cursor-pointer"
+                                        className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl font-bold bg-slate-900 text-white"
                                     >
-                                        <FaPlus className="mr-2" />
-                                        Nueva Actividad
+                                        <Eye size={18} className="text-primary" />
+                                        <span>Detalle Activo</span>
                                     </button>
-                                </div>
+                                )}
                             </div>
-                        </div>
 
-                        {/* Filtros y búsqueda */}
-                        <div className="bg-white rounded-xl shadow-lg p-6">
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                {/* Búsqueda */}
-                                <div>
-                                    <form onSubmit={handleBuscar} className="relative">
+                            <div className="mt-10 pt-10 border-t border-slate-100 space-y-6">
+                                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.25em] mb-4 px-2">Panel de Control</h3>
+                                
+                                <div className="space-y-4">
+                                    <div className="relative group">
+                                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary" size={16} />
                                         <input
                                             type="text"
                                             value={terminoBusqueda}
                                             onChange={(e) => setTerminoBusqueda(e.target.value)}
-                                            placeholder="Buscar actividades..."
-                                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            placeholder="Buscar..."
+                                            className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-transparent rounded-xl text-sm font-bold focus:bg-white focus:border-primary/20 outline-none transition-all"
                                         />
-                                        <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                                        {terminoBusqueda && (
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    setTerminoBusqueda('');
-                                                    limpiarBusqueda();
-                                                }}
-                                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                                            >
-                                                <FaTimes />
-                                            </button>
-                                        )}
-                                    </form>
-                                </div>
+                                    </div>
 
-                                {/* Orden */}
-                                <div>
-                                    <div className="relative">
+                                    <div className="space-y-2">
+                                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Orden Cronológico</label>
                                         <select
                                             value={orden}
                                             onChange={(e) => setOrden(e.target.value)}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none cursor-pointer"
+                                            className="w-full px-4 py-3 bg-slate-50 border border-transparent rounded-xl text-sm font-bold outline-none focus:bg-white focus:border-primary/20 transition-all cursor-pointer"
                                         >
-                                            <option value="desc">
-                                                <FaSortAmountDown className="inline mr-2" />
-                                                Más recientes primero
-                                            </option>
-                                            <option value="asc">
-                                                <FaSortAmountUp className="inline mr-2" />
-                                                Más antiguas primero
-                                            </option>
+                                            <option value="desc">Más recientes</option>
+                                            <option value="asc">Más antiguas</option>
                                         </select>
-                                        <FaSortAmountDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                                     </div>
-                                </div>
 
-                                {/* Filtro de imágenes */}
-                                <div>
-                                    <div className="relative">
+                                    <div className="space-y-2">
+                                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Filtro Multimedia</label>
                                         <select
                                             value={filtro}
                                             onChange={(e) => setFiltro(e.target.value)}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none cursor-pointer"
+                                            className="w-full px-4 py-3 bg-slate-50 border border-transparent rounded-xl text-sm font-bold outline-none focus:bg-white focus:border-primary/20 transition-all cursor-pointer"
                                         >
-                                            <option value="todos">Todas las actividades</option>
+                                            <option value="todos">Todos</option>
                                             <option value="conImagenes">Con imágenes</option>
                                             <option value="sinImagenes">Sin imágenes</option>
                                         </select>
-                                        <FaFilter className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                                     </div>
+
+                                    {(terminoBusqueda || filtro !== 'todos' || orden !== 'desc') && (
+                                        <button
+                                            onClick={() => { setTerminoBusqueda(''); setFiltro('todos'); setOrden('desc'); }}
+                                            className="w-full py-3 text-[10px] font-black text-rose-500 uppercase tracking-widest hover:bg-rose-50 rounded-xl transition-all"
+                                        >
+                                            Limpiar Filtros
+                                        </button>
+                                    )}
                                 </div>
                             </div>
-
-                            {/* Botón limpiar filtros */}
-                            {(terminoBusqueda || filtro !== 'todos' || orden !== 'desc') && (
-                                <div className="mt-4">
-                                    <button
-                                        onClick={limpiarFiltros}
-                                        className="px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-lg transition-colors flex items-center text-sm cursor-pointer"
-                                    >
-                                        <FaTimes className="mr-2" />
-                                        Limpiar filtros
-                                    </button>
-                                </div>
-                            )}
                         </div>
 
-                        {/* Lista de actividades */}
-                        <div>
-                            {cargando ? (
-                                <div className="bg-white rounded-xl shadow-lg p-12">
-                                    <LoadingSpinner text="Cargando actividades..." />
-                                </div>
-                            ) : error ? (
-                                <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
-                                    <p className="text-red-600 font-medium mb-4">{error}</p>
-                                    <button
-                                        onClick={() => obtenerActividades()}
-                                        className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                                    >
-                                        Reintentar
-                                    </button>
-                                </div>
-                            ) : actividadesOrdenadas.length === 0 ? (
-                                <div className="bg-white rounded-xl shadow-lg p-12 text-center">
-                                    <div className="text-gray-400 text-5xl mb-4">📋</div>
-                                    <h3 className="text-xl font-semibold text-gray-700 mb-2">
-                                        No hay actividades
-                                    </h3>
-                                    <p className="text-gray-500 mb-6">
-                                        {terminoBusqueda || filtro !== 'todos'
-                                            ? 'No se encontraron actividades con los filtros aplicados'
-                                            : 'Crea tu primera actividad para comenzar'}
-                                    </p>
-                                    <button
-                                        onClick={() => setModo('crear')}
-                                        className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                                    >
-                                        <FaPlus className="inline mr-2" />
-                                        Crear primera actividad
-                                    </button>
-                                </div>
-                            ) : (
-                                <>
-                                    <ActividadesList
-                                        actividades={actividadesOrdenadas}
-                                        cargando={false}
-                                        error={null}
-                                        onEdit={handleEditarActividad}
-                                        onDelete={handleEliminar}
-                                        onView={handleVerDetalle}
-                                        puedeEditar={true}
-                                    />
+                        {/* Quick Stats Card */}
+                        <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-8 rounded-[2rem] text-white shadow-2xl relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-125 transition-transform duration-700">
+                                <TrendingUp size={80} />
+                            </div>
+                            <h4 className="text-primary font-black text-[10px] uppercase tracking-[0.3em] mb-2">Actividad Reciente</h4>
+                            <div className="text-3xl font-black mb-1">+{actividades.filter(a => {
+                                const weekAgo = new Date();
+                                weekAgo.setDate(weekAgo.getDate() - 7);
+                                return new Date(a.fechaCreacion) > weekAgo;
+                            }).length}</div>
+                            <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">Nuevas esta semana</p>
+                        </div>
+                    </div>
 
-                                    {/* Paginación */}
-                                    {paginacion.totalPaginas > 1 && (
-                                        <div className="mt-8 bg-white rounded-xl shadow-lg p-6">
-                                            <div className="flex items-center justify-between">
-                                                <div className="text-gray-600">
-                                                    Mostrando página {paginacion.paginaActual} de {paginacion.totalPaginas}
+                    {/* Main Content */}
+                    <div className="lg:col-span-9">
+                        <AnimatePresence mode="wait">
+                            <motion.div
+                                key={modo}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -20 }}
+                                transition={{ duration: 0.3 }}
+                            >
+                                {modo === 'lista' ? (
+                                    <div className="space-y-8">
+                                        {cargando ? (
+                                            <div className="bg-white/70 backdrop-blur-2xl rounded-[2.5rem] border border-white p-24 flex flex-col items-center justify-center gap-6">
+                                                <Loader2 className="w-16 h-16 text-primary animate-spin" />
+                                                <p className="text-sm font-black text-slate-400 uppercase tracking-[0.25em]">Sincronizando Calendario...</p>
+                                            </div>
+                                        ) : error ? (
+                                            <div className="bg-rose-50 border border-rose-100 rounded-[2.5rem] p-16 text-center space-y-6">
+                                                <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center text-rose-500 mx-auto shadow-sm">
+                                                    <X size={40} />
                                                 </div>
-                                                <div className="flex space-x-2">
-                                                    <button
-                                                        onClick={() => handleCambiarPagina(paginacion.paginaActual - 1)}
-                                                        disabled={paginacion.paginaActual === 1}
-                                                        className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-                                                    >
-                                                        Anterior
-                                                    </button>
-
-                                                    {[...Array(paginacion.totalPaginas)].map((_, index) => {
-                                                        const pagina = index + 1;
-                                                        // Mostrar solo algunas páginas alrededor de la actual
-                                                        if (
-                                                            pagina === 1 ||
-                                                            pagina === paginacion.totalPaginas ||
-                                                            (pagina >= paginacion.paginaActual - 1 && pagina <= paginacion.paginaActual + 1)
-                                                        ) {
-                                                            return (
-                                                                <button
-                                                                    key={pagina}
-                                                                    onClick={() => handleCambiarPagina(pagina)}
-                                                                    className={`px-4 py-2 rounded-lg ${pagina === paginacion.paginaActual
-                                                                        ? 'bg-blue-600 text-white'
-                                                                        : 'border border-gray-300 hover:bg-gray-50'
-                                                                        }`}
-                                                                >
-                                                                    {pagina}
-                                                                </button>
-                                                            );
-                                                        } else if (
-                                                            pagina === paginacion.paginaActual - 2 ||
-                                                            pagina === paginacion.paginaActual + 2
-                                                        ) {
-                                                            return <span key={pagina} className="px-2">...</span>;
-                                                        }
-                                                        return null;
-                                                    })}
-
-                                                    <button
-                                                        onClick={() => handleCambiarPagina(paginacion.paginaActual + 1)}
-                                                        disabled={paginacion.paginaActual === paginacion.totalPaginas}
-                                                        className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-                                                    >
-                                                        Siguiente
-                                                    </button>
+                                                <p className="text-rose-600 font-bold text-lg">{error}</p>
+                                                <button onClick={() => obtenerActividades()} className="px-8 py-3 bg-rose-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest">Reintentar</button>
+                                            </div>
+                                        ) : actividadesFiltradas.length === 0 ? (
+                                            <div className="bg-white/70 backdrop-blur-2xl rounded-[2.5rem] border border-white p-24 text-center space-y-8">
+                                                <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center text-slate-200 mx-auto ring-8 ring-slate-50/50">
+                                                    <List size={48} />
                                                 </div>
+                                                <div>
+                                                    <h3 className="text-2xl font-black text-slate-800 uppercase tracking-tight">Sin Resultados</h3>
+                                                    <p className="text-slate-500 font-medium mt-2 max-w-xs mx-auto">No hay actividades que coincidan con los filtros actuales.</p>
+                                                </div>
+                                                <button onClick={() => setModo('crear')} className="px-8 py-4 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest">Crear Primera Actividad</button>
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <div className="bg-white/70 backdrop-blur-2xl rounded-[2.5rem] border border-white shadow-2xl shadow-slate-200/60 overflow-hidden">
+                                                    <div className="px-8 py-6 border-b border-slate-50 flex items-center justify-between bg-slate-50/30">
+                                                        <div className="flex items-center gap-3">
+                                                            <LayoutGrid size={20} className="text-slate-400" />
+                                                            <h2 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.25em]">Módulos de Noticias</h2>
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                                                            <span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Actualizado Tiempo Real</span>
+                                                        </div>
+                                                    </div>
+                                                    <ActividadesList
+                                                        actividades={actividadesFiltradas}
+                                                        onEdit={handleEditarActividad}
+                                                        onDelete={handleEliminar}
+                                                        onView={handleVerDetalle}
+                                                        puedeEditar={true}
+                                                    />
+                                                </div>
+
+                                                {paginacion.totalPaginas > 1 && (
+                                                    <div className="flex items-center justify-between px-8 py-6 bg-white/50 backdrop-blur-xl border border-white rounded-[2rem] shadow-xl shadow-slate-200/50">
+                                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Página {paginacion.paginaActual} de {paginacion.totalPaginas}</span>
+                                                        <div className="flex items-center gap-2">
+                                                            <button
+                                                                onClick={() => handleCambiarPagina(paginacion.paginaActual - 1)}
+                                                                disabled={paginacion.paginaActual === 1}
+                                                                className="p-3 bg-white border border-slate-100 rounded-xl text-slate-400 disabled:opacity-30 transition-all hover:text-primary hover:border-primary/20"
+                                                            >
+                                                                <ChevronLeft size={20} />
+                                                            </button>
+                                                            <div className="flex items-center gap-1">
+                                                                {[...Array(paginacion.totalPaginas)].map((_, i) => {
+                                                                    const p = i + 1;
+                                                                    if (p === 1 || p === paginacion.totalPaginas || (p >= paginacion.paginaActual - 1 && p <= paginacion.paginaActual + 1)) {
+                                                                        return (
+                                                                            <button
+                                                                                key={p}
+                                                                                onClick={() => handleCambiarPagina(p)}
+                                                                                className={`w-10 h-10 rounded-xl font-black text-xs transition-all ${p === paginacion.paginaActual ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-white text-slate-400 hover:text-slate-900'}`}
+                                                                            >
+                                                                                {p}
+                                                                            </button>
+                                                                        );
+                                                                    } else if (p === paginacion.paginaActual - 2 || p === paginacion.paginaActual + 2) {
+                                                                        return <span key={p} className="text-slate-300 px-1">...</span>;
+                                                                    }
+                                                                    return null;
+                                                                })}
+                                                            </div>
+                                                            <button
+                                                                onClick={() => handleCambiarPagina(paginacion.paginaActual + 1)}
+                                                                disabled={paginacion.paginaActual === paginacion.totalPaginas}
+                                                                className="p-3 bg-white border border-slate-100 rounded-xl text-slate-400 disabled:opacity-30 transition-all hover:text-primary hover:border-primary/20"
+                                                            >
+                                                                <ChevronRight size={20} />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </>
+                                        )}
+                                    </div>
+                                ) : modo === 'crear' || modo === 'editar' ? (
+                                    <div className="bg-white/70 backdrop-blur-2xl rounded-[2.5rem] border border-white shadow-2xl p-10">
+                                        <div className="flex items-center gap-6 mb-10 pb-6 border-b border-slate-50">
+                                            <button onClick={() => setModo('lista')} className="p-3 bg-slate-50 text-slate-400 rounded-2xl hover:bg-slate-100 transition-all"><ArrowLeft size={20} /></button>
+                                            <div>
+                                                <h2 className="text-2xl font-black text-slate-900 tracking-tight uppercase">{modo === 'crear' ? 'Nueva Actividad' : 'Editar Actividad'}</h2>
+                                                <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mt-1">Configuración de Entrada Editorial</p>
                                             </div>
                                         </div>
-                                    )}
-                                </>
-                            )}
-                        </div>
-                    </div>
-                );
-        }
-    };
-
-    return (
-        <div className="min-h-screen bg-gray-50">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                {/* Navegación de modos (solo para móvil/tablet) */}
-                <div className="md:hidden mb-6">
-                    <div className="bg-white rounded-xl shadow-lg p-4">
-                        <div className="flex justify-between items-center">
-                            <div className="text-lg font-semibold text-gray-800">
-                                {modo === 'lista' && 'Actividades'}
-                                {modo === 'crear' && 'Crear Actividad'}
-                                {modo === 'editar' && 'Editar Actividad'}
-                                {modo === 'detalle' && 'Detalle'}
-                            </div>
-                            {modo !== 'lista' && (
-                                <button
-                                    onClick={() => setModo('lista')}
-                                    className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
-                                >
-                                    <FaList />
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Barra lateral para modos (desktop) */}
-                <div className="hidden md:flex gap-6">
-                    <div className="w-64 flex-shrink-0">
-                        <div className="bg-white rounded-xl shadow-lg p-6 sticky top-6">
-                            <h2 className="text-lg font-bold text-gray-800 mb-4">Actividades</h2>
-
-                            <nav className="space-y-2">
-                                <button
-                                    onClick={() => setModo('lista')}
-                                    className={`w-full text-left px-4 py-3 rounded-lg transition-colors cursor-pointer ${modo === 'lista'
-                                        ? 'bg-blue-100 text-blue-600'
-                                        : 'text-gray-600 hover:bg-gray-200'
-                                        }`}
-                                >
-                                    <FaList className="inline mr-3" />
-                                    Lista de Actividades
-                                </button>
-
-                                <button
-                                    onClick={() => setModo('crear')}
-                                    className={`w-full text-left px-4 py-3 rounded-lg transition-colors cursor-pointer ${modo === 'crear'
-                                        ? 'bg-blue-100 text-blue-600'
-                                        : 'text-gray-600 hover:bg-gray-200'
-                                        }`}
-                                >
-                                    <FaPlus className="inline mr-3" />
-                                    Crear Nueva
-                                </button>
-
-                                {modo === 'detalle' && actividadActual && (
-                                    <>
-                                        <div className="border-t border-gray-200 my-3"></div>
-
-                                        <div className="px-4 py-3">
-                                            <h3 className="font-medium text-gray-700 mb-2">Opciones</h3>
-                                            <button
-                                                onClick={() => handleEditarActividad(actividadActual)}
-                                                className="w-full text-left px-3 py-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors mb-2 cursor-pointer"
-                                            >
-                                                <FaEdit className="inline mr-2" />
-                                                Editar
-                                            </button>
-                                            <button
-                                                onClick={() => handleEliminar(actividadActual.id)}
-                                                className="w-full text-left px-3 py-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors cursor-pointer"
-                                            >
-                                                <FaTrash className="inline mr-2" />
-                                                Eliminar
-                                            </button>
+                                        <ActividadForm
+                                            actividad={modo === 'editar' ? actividadActual : null}
+                                            onSubmit={modo === 'crear' ? handleCrear : handleEditar}
+                                            onCancel={() => setModo('lista')}
+                                            cargando={cargando}
+                                        />
+                                    </div>
+                                ) : (
+                                    <div className="bg-white/70 backdrop-blur-2xl rounded-[2.5rem] border border-white shadow-2xl p-10">
+                                        <div className="flex items-center gap-6 mb-10 pb-6 border-b border-slate-50">
+                                            <button onClick={() => setModo('lista')} className="p-3 bg-slate-50 text-slate-400 rounded-2xl hover:bg-slate-100 transition-all"><ArrowLeft size={20} /></button>
+                                            <div>
+                                                <h2 className="text-2xl font-black text-slate-900 tracking-tight uppercase">Visor de Actividad</h2>
+                                                <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mt-1">Detalles y Multimedia</p>
+                                            </div>
                                         </div>
-                                    </>
+                                        {actividadActual ? (
+                                            <ActividadDetalle
+                                                actividad={actividadActual}
+                                                onEdit={() => setModo('editar')}
+                                                onDelete={handleEliminar}
+                                                puedeEditar={true}
+                                            />
+                                        ) : (
+                                            <div className="py-20 flex flex-col items-center justify-center gap-4">
+                                                <Loader2 className="w-12 h-12 text-primary animate-spin" />
+                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Cargando Multimedia...</p>
+                                            </div>
+                                        )}
+                                    </div>
                                 )}
-                            </nav>
-
-                            {/* Estadísticas */}
-                            <div className="border-t border-gray-200 mt-6 pt-6">
-                                <h3 className="font-medium text-gray-700 mb-3">Estadísticas</h3>
-                                <div className="space-y-2">
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-600">Total:</span>
-                                        <span className="font-medium">{actividades.length}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-600">Con imágenes:</span>
-                                        <span className="font-medium">
-                                            {actividades.filter(a => a.imagenes?.length > 0).length}
-                                        </span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-600">Página actual:</span>
-                                        <span className="font-medium">{paginacion.paginaActual}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                            </motion.div>
+                        </AnimatePresence>
                     </div>
-
-                    {/* Contenido principal */}
-                    <div className="flex-1">
-                        {renderContenido()}
-                    </div>
-                </div>
-
-                {/* Versión móvil (sin sidebar) */}
-                <div className="md:hidden">
-                    {renderContenido()}
                 </div>
             </div>
         </div>

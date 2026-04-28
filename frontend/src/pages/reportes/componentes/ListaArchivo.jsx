@@ -1,35 +1,40 @@
 import React from 'react';
 import {
-    FaFilePdf,
-    FaFileWord,
-    FaFileExcel,
-    FaFileImage,
-    FaFileAlt,
-    FaFileArchive,
-    FaFile,
-    FaDownload,
-    FaEye,
-    FaTrash,
-    FaCalendarAlt,
-    FaUser,
-    FaSpinner
-} from 'react-icons/fa';
+    FileText,
+    FileImage,
+    FileCode,
+    FileAudio,
+    FileVideo,
+    FileArchive,
+    FileSpreadsheet,
+    FileBox,
+    Download,
+    Eye,
+    Trash2,
+    Calendar,
+    User,
+    Loader2,
+    CheckCircle2,
+    Clock,
+    MoreHorizontal
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ArchivosAdaptador } from '../adaptadores/archivo.adaptador';
 
 const iconMap = {
-    pdf: FaFilePdf,
-    doc: FaFileWord,
-    docx: FaFileWord,
-    xls: FaFileExcel,
-    xlsx: FaFileExcel,
-    jpg: FaFileImage,
-    jpeg: FaFileImage,
-    png: FaFileImage,
-    gif: FaFileImage,
-    txt: FaFileAlt,
-    zip: FaFileArchive,
-    rar: FaFileArchive,
-    default: FaFile
+    pdf: FileText,
+    doc: FileText,
+    docx: FileText,
+    xls: FileSpreadsheet,
+    xlsx: FileSpreadsheet,
+    jpg: FileImage,
+    jpeg: FileImage,
+    png: FileImage,
+    gif: FileImage,
+    txt: FileText,
+    zip: FileArchive,
+    rar: FileArchive,
+    default: FileBox
 };
 
 const ListaArchivo = ({
@@ -47,15 +52,15 @@ const ListaArchivo = ({
 
     const getFileColor = (formato) => {
         const colorMap = {
-            pdf: 'text-red-600 bg-red-50',
+            pdf: 'text-rose-600 bg-rose-50',
             doc: 'text-blue-600 bg-blue-50',
             docx: 'text-blue-600 bg-blue-50',
-            xls: 'text-green-600 bg-green-50',
-            xlsx: 'text-green-600 bg-green-50',
-            jpg: 'text-purple-600 bg-purple-50',
-            jpeg: 'text-purple-600 bg-purple-50',
-            png: 'text-purple-600 bg-purple-50',
-            default: 'text-gray-600 bg-gray-50'
+            xls: 'text-emerald-600 bg-emerald-50',
+            xlsx: 'text-emerald-600 bg-emerald-50',
+            jpg: 'text-violet-600 bg-violet-50',
+            jpeg: 'text-violet-600 bg-violet-50',
+            png: 'text-violet-600 bg-violet-50',
+            default: 'text-slate-600 bg-slate-50'
         };
         return colorMap[formato] || colorMap.default;
     };
@@ -71,183 +76,162 @@ const ListaArchivo = ({
 
     if (loading) {
         return (
-            <div className="flex justify-center items-center py-12">
-                <FaSpinner className="animate-spin h-8 w-8 text-indigo-600" />
-                <span className="ml-3 text-gray-600">Cargando archivos...</span>
+            <div className="py-24 flex flex-col items-center justify-center gap-4">
+                <Loader2 className="w-12 h-12 text-primary animate-spin" />
+                <p className="text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Escaneando Repositorio...</p>
             </div>
         );
     }
 
     if (archivos.length === 0) {
         return (
-            <div className="text-center py-12">
-                <FaFile className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No hay archivos</h3>
-                <p className="text-gray-500">Sube tu primer archivo para comenzar</p>
+            <div className="py-24 text-center flex flex-col items-center gap-6">
+                <div className="w-24 h-24 rounded-full bg-slate-50 flex items-center justify-center text-slate-200 ring-8 ring-slate-50/50">
+                    <FileBox size={48} />
+                </div>
+                <div>
+                    <h3 className="text-xl font-black text-slate-800 uppercase tracking-tight">Repositorio Vacío</h3>
+                    <p className="text-slate-500 font-medium max-w-xs mx-auto mt-2">No se han encontrado archivos que coincidan con los criterios de búsqueda.</p>
+                </div>
             </div>
         );
     }
 
     return (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-            {/* Header de la tabla - AÑADE COLUMNA PARA SELECCIÓN */}
-            <div className="grid grid-cols-12 gap-4 p-4 border-b bg-gray-50 text-sm font-medium text-gray-700">
-                <div className="col-span-1 text-center">Sel</div>
-                <div className="col-span-3">Nombre</div>
-                <div className="col-span-2 text-center">Categoría</div>
-                <div className="col-span-1">Tamaño</div>
-                <div className="col-span-2">Fecha</div>
-                <div className="col-span-3">Acciones</div>
+        <div className="w-full">
+            <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                    <thead>
+                        <tr className="border-b border-slate-100">
+                            <th className="px-6 py-5 text-left w-12"></th>
+                            <th className="px-6 py-5 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Documento</th>
+                            <th className="px-6 py-5 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Categoría</th>
+                            <th className="px-6 py-5 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Metadatos</th>
+                            <th className="px-6 py-5 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Registro</th>
+                            <th className="px-6 py-5 text-right text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-50">
+                        <AnimatePresence mode="popLayout">
+                            {archivos.map((archivo, idx) => {
+                                const Icon = getFileIcon(archivo.formato);
+                                const colorClass = getFileColor(archivo.formato);
+                                const isSelected = selectedFiles.includes(archivo.id);
+
+                                return (
+                                    <motion.tr
+                                        key={archivo.id}
+                                        initial={{ opacity: 0, x: -10 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        exit={{ opacity: 0, scale: 0.95 }}
+                                        transition={{ delay: idx * 0.03 }}
+                                        onClick={() => onSelect?.(archivo)}
+                                        className={`group cursor-pointer transition-all duration-200 ${isSelected ? 'bg-primary/5' : 'hover:bg-slate-50/80'}`}
+                                    >
+                                        <td className="px-6 py-4">
+                                            <div className={`w-6 h-6 rounded-lg border-2 transition-all flex items-center justify-center ${isSelected ? 'bg-primary border-primary text-white' : 'border-slate-200 group-hover:border-primary/50'}`}>
+                                                {isSelected && <CheckCircle2 size={14} />}
+                                            </div>
+                                        </td>
+                                        
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="flex items-center gap-4">
+                                                <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shadow-sm transition-transform group-hover:scale-110 ${colorClass}`}>
+                                                    <Icon size={20} />
+                                                </div>
+                                                <div className="max-w-[250px]">
+                                                    <div className={`text-sm font-black tracking-tight truncate ${isSelected ? 'text-primary' : 'text-slate-800'}`}>
+                                                        {archivo.nombre}
+                                                    </div>
+                                                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase mt-0.5 truncate">
+                                                        {archivo.descripcion || 'Sin descripción'}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${isSelected ? 'bg-primary/10 text-primary' : 'bg-slate-100 text-slate-500'}`}>
+                                                {archivo.categoria}
+                                            </span>
+                                        </td>
+
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="flex flex-col gap-1">
+                                                <div className="text-[10px] font-black text-slate-700 uppercase tracking-tighter">
+                                                    {ArchivosAdaptador.formatFileSize(archivo.tamaño)}
+                                                </div>
+                                                <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+                                                    Formato: {archivo.formato}
+                                                </div>
+                                            </div>
+                                        </td>
+
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="space-y-1">
+                                                <div className="flex items-center gap-2 text-[10px] font-bold text-slate-600">
+                                                    <Calendar size={12} className="text-slate-300" />
+                                                    {formatDate(archivo.fechaSubida)}
+                                                </div>
+                                                {archivo.subidoPor?.nombre && (
+                                                    <div className="flex items-center gap-2 text-[9px] font-bold text-slate-400 uppercase">
+                                                        <User size={10} className="text-slate-300" />
+                                                        {archivo.subidoPor.nombre}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </td>
+
+                                        <td className="px-6 py-4 text-right">
+                                            <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <motion.button
+                                                    whileHover={{ scale: 1.1 }}
+                                                    whileTap={{ scale: 0.9 }}
+                                                    onClick={(e) => { e.stopPropagation(); onDownload?.(archivo.id, archivo.nombre); }}
+                                                    className="p-2 rounded-xl bg-white text-emerald-500 shadow-sm border border-slate-100 hover:bg-emerald-50 transition-colors"
+                                                    title="Descargar"
+                                                >
+                                                    <Download size={16} />
+                                                </motion.button>
+                                                <motion.button
+                                                    whileHover={{ scale: 1.1 }}
+                                                    whileTap={{ scale: 0.9 }}
+                                                    onClick={(e) => { e.stopPropagation(); onView?.(archivo); }}
+                                                    className="p-2 rounded-xl bg-white text-blue-500 shadow-sm border border-slate-100 hover:bg-blue-50 transition-colors"
+                                                    title="Ver Detalles"
+                                                >
+                                                    <Eye size={16} />
+                                                </motion.button>
+                                                <motion.button
+                                                    whileHover={{ scale: 1.1 }}
+                                                    whileTap={{ scale: 0.9 }}
+                                                    onClick={(e) => { e.stopPropagation(); onDelete?.(archivo.id); }}
+                                                    className="p-2 rounded-xl bg-white text-rose-500 shadow-sm border border-slate-100 hover:bg-rose-50 transition-colors"
+                                                    title="Eliminar"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </motion.button>
+                                            </div>
+                                        </td>
+                                    </motion.tr>
+                                );
+                            })}
+                        </AnimatePresence>
+                    </tbody>
+                </table>
             </div>
 
-            {/* Lista de archivos */}
-            <div className="divide-y divide-gray-100">
-                {archivos.map((archivo) => {
-                    const Icon = getFileIcon(archivo.formato);
-                    const colorClass = getFileColor(archivo.formato);
-                    const isSelected = selectedFiles.includes(archivo.id); // ← Determina si está seleccionado
-
-                    return (
-                        <div
-                            key={archivo.id}
-                            className={`grid grid-cols-12 gap-4 p-4 transition-colors items-center cursor-pointer
-                                ${isSelected
-                                    ? 'bg-indigo-50 hover:bg-indigo-100 border-l-4 border-indigo-500'
-                                    : 'hover:bg-gray-50'
-                                }`}
-                            onClick={() => onSelect?.(archivo)}
-                        >
-                            {/* Checkbox de selección */}
-                            <div className="col-span-1 flex justify-center">
-                                <div className={`w-5 h-5 rounded border flex items-center justify-center
-                                    ${isSelected
-                                        ? 'bg-indigo-500 border-indigo-500'
-                                        : 'bg-white border-gray-300'
-                                    }`}
-                                >
-                                    {isSelected && (
-                                        <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
-                                        </svg>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Nombre e icono */}
-                            <div className="col-span-3 flex items-center space-x-3">
-                                <div className={`p-3 rounded-lg ${colorClass} ${isSelected ? 'ring-2 ring-indigo-300' : ''
-                                    }`}>
-                                    <Icon className="h-6 w-6" />
-                                </div>
-                                <div className="min-w-0 flex-1">
-                                    <p className={`font-medium truncate ${isSelected ? 'text-indigo-700' : 'text-gray-900'
-                                        }`}>
-                                        {archivo.nombre}
-                                    </p>
-                                    {archivo.descripcion && (
-                                        <p className={`text-sm truncate ${isSelected ? 'text-indigo-500' : 'text-gray-500'
-                                            }`}>
-                                            {archivo.descripcion}
-                                        </p>
-                                    )}
-                                    <div className="flex items-center space-x-2 mt-1">
-                                        <span className={`text-xs px-2 py-1 rounded ${isSelected
-                                                ? 'bg-indigo-100 text-indigo-600'
-                                                : 'bg-gray-100 text-gray-600'
-                                            }`}>
-                                            .{archivo.formato}
-                                        </span>
-                                        {archivo.tags?.map((tag, index) => (
-                                            <span
-                                                key={index}
-                                                className="text-xs px-2 py-1 bg-blue-100 text-blue-600 rounded"
-                                            >
-                                                {tag}
-                                            </span>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Categoría */}
-                            <div className="col-span-2">
-                                <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${isSelected
-                                        ? 'bg-indigo-100 text-indigo-700'
-                                        : 'bg-gray-100 text-gray-800'
-                                    }`}>
-                                    {archivo.categoria}
-                                </span>
-                            </div>
-
-                            {/* Tamaño */}
-                            <div className={`col-span-1 ${isSelected ? 'text-indigo-600' : 'text-gray-600'
-                                }`}>
-                                {ArchivosAdaptador.formatFileSize(archivo.tamaño)}
-                            </div>
-
-                            {/* Fecha */}
-                            <div className="col-span-2">
-                                <div className={`flex items-center ${isSelected ? 'text-indigo-600' : 'text-gray-600'
-                                    }`}>
-                                    <FaCalendarAlt className="h-4 w-4 mr-2" />
-                                    <span className="text-sm">{formatDate(archivo.fechaSubida)}</span>
-                                </div>
-                                {archivo.subidoPor?.nombre && (
-                                    <div className={`flex items-center mt-1 ${isSelected ? 'text-indigo-400' : 'text-gray-500'
-                                        }`}>
-                                        <FaUser className="h-3 w-3 mr-1" />
-                                        <span className="text-xs">{archivo.subidoPor.nombre}</span>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Acciones */}
-                            <div className="col-span-3">
-                                <div className="flex items-center space-x-2">
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            onDownload?.(archivo.id, archivo.nombre);
-                                        }}
-                                        className={`p-2 transition-colors cursor-pointer ${isSelected
-                                                ? 'text-indigo-400 hover:text-indigo-600'
-                                                : 'text-gray-400 hover:text-indigo-600'
-                                            }`}
-                                        title="Descargar"
-                                    >
-                                        <FaDownload className="h-4 w-4" />
-                                    </button>
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            onView?.(archivo);
-                                        }}
-                                        className={`p-2 transition-colors cursor-pointer ${isSelected
-                                                ? 'text-indigo-400 hover:text-green-600'
-                                                : 'text-gray-400 hover:text-green-600'
-                                            }`}
-                                        title="Ver detalles"
-                                    >
-                                        <FaEye className="h-4 w-4" />
-                                    </button>
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            onDelete?.(archivo.id);
-                                        }}
-                                        className={`p-2 transition-colors cursor-pointer ${isSelected
-                                                ? 'text-indigo-400 hover:text-red-600'
-                                                : 'text-gray-400 hover:text-red-600'
-                                            }`}
-                                        title="Eliminar"
-                                    >
-                                        <FaTrash className="h-4 w-4" />
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    );
-                })}
+            <div className="px-8 py-5 border-t border-slate-50 bg-slate-50/30 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-primary/40 animate-pulse" />
+                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">
+                        Explorando {archivos.length} Entradas
+                    </span>
+                </div>
+                <div className="flex items-center gap-1.5 text-[10px] font-black text-slate-400 uppercase tracking-[0.1em]">
+                    <Clock size={12} />
+                    Sincronizado: {new Date().toLocaleTimeString()}
+                </div>
             </div>
         </div>
     );
